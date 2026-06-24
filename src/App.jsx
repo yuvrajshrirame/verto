@@ -2,85 +2,83 @@ import { useState, useEffect } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "./firebase";
 
+// Import all our components
+import Landing from "./components/Landing";
+import Timer from "./components/Timer";
+import Feed from "./components/Feed";   
+
 function App() {
-  // This state variable holds the user's data once they log in
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // This hook listens to Firebase to see if someone is already logged in
+  // Check if someone is already logged in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe(); // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
-  // The function that triggers the Google pop-up
   const handleLogin = async () => {
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Login Error:", error);
-      alert("Failed to log in. Check the console for details.");
+      alert("Failed to log in.");
     }
   };
 
-  // The function to log out
   const handleLogout = async () => {
     await signOut(auth);
   };
 
-  // 1. Show a blank screen for a split second while Firebase checks auth state
+  // State 1: Loading (Blank screen while checking auth)
   if (loading) {
-    return <div className="min-h-screen bg-slate-950" />;
+    return <div className="min-h-screen bg-[#050505]" />;
   }
 
-  // 2. If no user is found, show the Login Screen
+  // State 2: Logged Out (Show the sleek Landing Page)
   if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-8">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-white tracking-wider mb-2">
-            VERTO<span className="text-amber-400">.</span>
-          </h1>
-          <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">
-            Proof of Work {'>'} Proof of Presence
-          </p>
-        </div>
-        
-        <button 
-          onClick={handleLogin}
-          className="bg-amber-400 text-slate-950 px-8 py-3 rounded font-bold hover:bg-amber-300 transition-all shadow-[0_0_15px_rgba(251,191,36,0.3)] hover:shadow-[0_0_25px_rgba(251,191,36,0.5)]"
-        >
-          Continue with Google
-        </button>
-      </div>
-    );
+    return <Landing onLogin={handleLogin} />;
   }
 
-  // 3. If the user IS logged in, show this temporary Welcome Screen
+  // State 3: Logged In (Show the Main Dashboard)
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-6 text-center px-4">
+    <div className="min-h-screen bg-slate-950 p-6">
       
-      {/* User Profile Picture from Google */}
-      <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
-         <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-      </div>
+      {/* Dashboard Header Bar */}
+      <header className="flex justify-between items-center mb-10 max-w-5xl mx-auto border-b border-slate-800 pb-4">
+        <h1 className="text-2xl font-bold text-white tracking-wider">
+          VERTO<span className="text-emerald-500">.</span>
+        </h1>
+        
+        <div className="flex items-center space-x-4">
+          <div className="text-right">
+            <p className="text-white text-sm font-medium">{user.displayName.split(" ")[0]}</p>
+            <button onClick={handleLogout} className="text-slate-500 hover:text-white transition-colors text-xs font-mono uppercase tracking-wider mt-1">
+              Sign Out
+            </button>
+          </div>
+          <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border border-emerald-500" />
+        </div>
+      </header>
 
-      <div>
-        <h2 className="text-3xl font-bold text-white mb-2">
-          Welcome back, <span className="text-amber-400">{user.displayName.split(" ")[0]}</span>
-        </h2>
-        <p className="text-slate-400 font-mono text-sm">Authentication successful.</p>
-      </div>
+      {/* Main Dashboard Layout */}
+      <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
+        
+        {/* Left Side: The Timer Component */}
+        <div className="flex-1">
+          <Timer user={user} />
+        </div>
 
-      <button 
-        onClick={handleLogout}
-        className="mt-8 text-slate-500 hover:text-white transition-colors underline font-mono text-xs uppercase tracking-wider"
-      >
-        Sign Out
-      </button>
+        {/* Right Side: The Feed Component */}
+        <div className="flex-1">
+          <Feed />
+        </div>
+
+      </main>
+      
     </div>
   );
 }
