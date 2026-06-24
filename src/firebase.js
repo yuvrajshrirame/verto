@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+// 1. We import GithubAuthProvider instead of Google
+import { getAuth, GithubAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,7 +13,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+// 2. Initialize GitHub Provider
+export const provider = new GithubAuthProvider();
+
+// 3. This tells GitHub: "Ask the user for permission to push code to their repos"
+provider.addScope('repo');
