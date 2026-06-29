@@ -1,88 +1,110 @@
-import { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, query, where, orderBy, onSnapshot, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { Trash2, Edit2, Save, X } from 'lucide-react';
 
-const Feed = () => {
+const Feed = ({ user }) => {
   const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editMinutes, setEditMinutes] = useState("");
 
-  // 1. Listen to the database in real-time
   useEffect(() => {
-    // Create a query: look at "sessions", order by newest first, grab the last 20
+    if (!user) return;
+    
+    // Real-time listener for this user's sessions, newest first
     const q = query(
       collection(db, "sessions"), 
-      orderBy("timestamp", "desc"), 
-      limit(20)
+      where("uid", "==", user.uid),
+      orderBy("timestamp", "desc")
     );
 
-    // onSnapshot listens for live changes. It triggers immediately, and then again EVERY time new data is added.
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const feedData = [];
-      snapshot.forEach((doc) => {
-        feedData.push({ id: doc.id, ...doc.data() });
-      });
-      setSessions(feedData);
-      setLoading(false);
+      setSessions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // Cleanup listener if the component unmounts
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
-  // 2. Helper function to turn raw seconds into "1h 30m"
-  const formatDuration = (totalSeconds) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
+  const formatTime = (totalSeconds) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
   };
 
-  if (loading) {
-    return <div className="text-slate-500 font-mono text-sm animate-pulse">Loading activity...</div>;
-  }
+  const handleDelete = async (id) => {
+    if (window.confirm("Delete this log?")) {
+      await deleteDoc(doc(db, "sessions", id));
+    }
+  };
+
+  const handleUpdate = async (id) => {
+    const newSeconds = parseInt(editMinutes) * 60;
+    if (isNaN(newSeconds) || newSeconds <= 0) return;
+
+    // Recalculate XP based on the new time
+    const newXp = Math.floor((newSeconds / 60) * 10);
+
+    await updateDoc(doc(db, "sessions", id), { 
+      duration: newSeconds,
+      xp: newXp,
+      synced: false // Flag as unsynced so the Daily Sync catches the correction!
+    });
+    setEditingId(null);
+  };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg shadow-black/50 w-full max-w-md mx-auto mt-8">
-      <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-3">
-        <h2 className="text-lg font-semibold text-white">Live Activity Feed</h2>
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+    <div className="bg-[#0c0c0c] border border-slate-800 rounded-2xl p-6 h-full min-h-[500px] shadow-xl flex flex-col">
+      <div className="flex justify-between items-center border-b border-slate-800/50 pb-4 mb-6">
+        <h2 className="text-lg font-bold text-white uppercase tracking-widest">Activity Log</h2>
+        <span className="bg-slate-900 text-slate-400 text-xs font-mono px-3 py-1 rounded-full border border-slate-800">
+          {sessions.length} Logs
         </span>
       </div>
 
-      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
         {sessions.length === 0 ? (
-          <p className="text-slate-500 text-sm font-mono text-center py-4">No activity yet. Be the first!</p>
+          <div className="text-slate-500 font-mono text-sm text-center mt-10">No focus sessions logged yet.</div>
         ) : (
-          sessions.map((session) => (
-            <div key={session.id} className="bg-slate-950/50 border border-slate-800/50 p-4 rounded-lg flex items-start space-x-4 hover:border-slate-700 transition-colors">
+          sessions.map((s) => (
+            <div key={s.id} className="group flex justify-between items-center bg-slate-900/50 border border-slate-800 hover:border-slate-700 p-4 rounded-xl transition-all">
               
-              {/* Profile Picture */}
-              <img 
-                src={session.userPhoto || 'https://via.placeholder.com/40'} 
-                alt={session.userName} 
-                className="w-10 h-10 rounded-full border border-slate-700"
-              />
-              
-              {/* Activity Text */}
-              <div className="flex-1">
-                <p className="text-slate-300 text-sm">
-                  <span className="font-semibold text-amber-400">{session.userName.split(" ")[0]}</span> completed a sprint
-                </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className="bg-slate-800 text-slate-300 text-xs px-2 py-1 rounded font-mono">
-                    {session.task}
-                  </span>
-                  <span className="text-emerald-400 text-xs font-mono font-bold">
-                    + {formatDuration(session.duration)}
-                  </span>
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-emerald-400 font-mono text-sm uppercase">_{s.task}</span>
+                  {s.synced && <span className="w-2 h-2 rounded-full bg-amber-500" title="Synced to GitHub"></span>}
+                </div>
+                <div className="text-xs text-slate-500">
+                  {s.timestamp ? new Date(s.timestamp.toDate()).toLocaleDateString() : 'Just now'} • {s.xp} XP
                 </div>
               </div>
 
+              <div className="flex items-center space-x-4">
+                {editingId === s.id ? (
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="number"
+                      value={editMinutes}
+                      onChange={(e) => setEditMinutes(e.target.value)}
+                      className="w-16 bg-slate-950 text-white font-mono text-sm border border-emerald-500 rounded px-2 py-1 outline-none text-center"
+                      placeholder="Mins"
+                    />
+                    <button onClick={() => handleUpdate(s.id)} className="text-emerald-400 hover:text-emerald-300"><Save className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="text-slate-200 font-bold font-mono">{formatTime(s.duration)}</span>
+                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => { setEditingId(s.id); setEditMinutes(Math.floor(s.duration / 60)); }} 
+                        className="text-slate-500 hover:text-white"
+                      ><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(s.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           ))
         )}
