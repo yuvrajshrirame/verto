@@ -4,6 +4,7 @@ import { auth, provider } from "./firebase";
 import Landing from "./components/Landing";
 import Timer from "./components/Timer";
 import Feed from "./components/Feed";   
+import PlayerStats from "./components/PlayerStats"; // Imported new component
 
 function App() {
   const [user, setUser] = useState(null);
@@ -20,13 +21,10 @@ function App() {
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      
-      // Grab the GitHub Access Token and save it to the browser
       const credential = GithubAuthProvider.credentialFromResult(result);
       if (credential && credential.accessToken) {
         localStorage.setItem("github_token", credential.accessToken);
       }
-      
     } catch (error) {
       console.error("Login Error:", error);
       alert("Failed to log in with GitHub.");
@@ -35,7 +33,7 @@ function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    localStorage.removeItem("github_token"); // Clean up the token when they leave
+    localStorage.removeItem("github_token"); 
   };
 
   if (loading) {
@@ -68,7 +66,9 @@ function App() {
       </header>
 
       <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
+          {/* Injected PlayerStats right here */}
+          <PlayerStats uid={user.uid} />
           <Timer user={user} />
         </div>
         <div className="flex-1">
