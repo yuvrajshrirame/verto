@@ -13,7 +13,7 @@ const Timer = ({ user }) => {
     let interval = null;
     if (isActive) {
       interval = setInterval(() => {
-        setSeconds((seconds) => seconds + 1);
+        setSeconds((s) => s + 1);
       }, 1000);
     } else if (!isActive && seconds !== 0) {
       clearInterval(interval);
@@ -31,18 +31,15 @@ const Timer = ({ user }) => {
 
   const toggleTimer = () => setIsActive(!isActive);
 
-  // The new function that creates the GitHub Commit
   const pushToGitHub = async (taskName, timeFormatted) => {
     const token = localStorage.getItem("github_token");
     if (!token) return;
 
     const repoName = "verto-activity"; 
-    // Get their exact GitHub username from Firebase
     const githubUsername = user.reloadUserInfo.screenName; 
     const path = "log.md";
     
     try {
-      // 1. Check if the file already exists
       const getFileRes = await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -50,7 +47,6 @@ const Timer = ({ user }) => {
       const fileData = await getFileRes.json();
       const sha = fileData.sha ? fileData.sha : undefined;
 
-      // 2. Prepare the commit content
       const date = new Date().toISOString().split('T')[0];
       const logEntry = `\n- **${date}**: Completed ${timeFormatted} of ${taskName} via Verto.`;
       
@@ -60,7 +56,6 @@ const Timer = ({ user }) => {
       }
       const newContentBase64 = btoa(existingContent + logEntry);
 
-      // 3. Push the commit!
       await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         method: 'PUT',
         headers: {
@@ -84,20 +79,22 @@ const Timer = ({ user }) => {
     setIsActive(false);
     if (seconds > 0) {
       setIsSaving(true);
+      
+      // Calculate XP: 1 minute = 10 XP
+      const xpEarned = Math.floor((seconds / 60) * 10);
+      
       try {
-        // Save to Firebase first
         await addDoc(collection(db, "sessions"), {
           uid: user.uid,
           userName: user.displayName || user.reloadUserInfo.screenName,
           userPhoto: user.photoURL,
           task: task,
           duration: seconds,
+          xp: xpEarned, // Send the calculated XP to Firebase
           timestamp: serverTimestamp()
         });
         
-        // Push the commit to GitHub
         await pushToGitHub(task, formatTime(seconds));
-
         setSeconds(0);
       } catch (error) {
         console.error("Error saving session: ", error);
