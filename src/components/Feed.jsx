@@ -11,7 +11,6 @@ const Feed = ({ user }) => {
   useEffect(() => {
     if (!user) return;
     
-    // Real-time listener for this user's sessions, newest first
     const q = query(
       collection(db, "sessions"), 
       where("uid", "==", user.uid),
@@ -25,11 +24,15 @@ const Feed = ({ user }) => {
     return () => unsubscribe();
   }, [user]);
 
+  // UPDATED: Precise time formatting
   const formatTime = (totalSeconds) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
-    if (h > 0) return `${h}h ${m}m`;
-    return `${m}m`;
+    const s = totalSeconds % 60;
+    
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
   };
 
   const handleDelete = async (id) => {
@@ -42,13 +45,12 @@ const Feed = ({ user }) => {
     const newSeconds = parseInt(editMinutes) * 60;
     if (isNaN(newSeconds) || newSeconds <= 0) return;
 
-    // Recalculate XP based on the new time
     const newXp = Math.floor((newSeconds / 60) * 10);
 
     await updateDoc(doc(db, "sessions", id), { 
       duration: newSeconds,
       xp: newXp,
-      synced: false // Flag as unsynced so the Daily Sync catches the correction!
+      synced: false 
     });
     setEditingId(null);
   };

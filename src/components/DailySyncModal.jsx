@@ -34,13 +34,11 @@ const DailySyncModal = ({ user, onClose }) => {
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
         allSessions.push(data);
-        // If the session hasn't been marked synced yet, log its ID
         if (data.synced !== true) {
           pendingSyncIds.push(docSnap.id);
         }
       });
 
-      // Aggregate the grand total for the day (to keep GitHub accurate)
       const aggregated = allSessions.reduce((acc, curr) => {
         if (!acc[curr.task]) acc[curr.task] = 0;
         acc[curr.task] += curr.duration;
@@ -54,11 +52,15 @@ const DailySyncModal = ({ user, onClose }) => {
     fetchTodaySessions();
   }, [user.uid]);
 
+  // UPDATED: Precise time formatting
   const formatTime = (totalSeconds) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
-    if (h > 0) return `${h}h ${m}m`;
-    return `${m}m`;
+    const s = totalSeconds % 60;
+    
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
   };
 
   const pushDailyCommit = async () => {
@@ -75,13 +77,11 @@ const DailySyncModal = ({ user, onClose }) => {
     const repoName = "verto-activity"; 
     const githubUsername = user.reloadUserInfo.screenName; 
     
-    // Create a unique file for today (e.g., logs/2026-06-29.md)
     const now = new Date();
     const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const path = `logs/${dateString}.md`; 
     
     try {
-      // 1. Check if today's file already exists
       const getFileRes = await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -89,18 +89,15 @@ const DailySyncModal = ({ user, onClose }) => {
       const fileData = await getFileRes.json();
       const sha = fileData.sha ? fileData.sha : undefined;
 
-      // 2. Generate the Grand Total Markdown
       let totalSeconds = 0;
       let breakdown = sessions.map(s => {
         totalSeconds += s.duration;
         return `- ${s.task}: ${formatTime(s.duration)}`;
       }).join('\n');
 
-      // Notice we are NOT appending to old content anymore. We just overwrite with the accurate total.
       const logEntry = `### Daily Sync: ${now.toDateString()}\n**Total Focus: ${formatTime(totalSeconds)}**\n\n${breakdown}`;
       const newContentBase64 = btoa(logEntry);
 
-      // 3. Push to GitHub
       await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         method: 'PUT',
         headers: {
@@ -114,7 +111,6 @@ const DailySyncModal = ({ user, onClose }) => {
         })
       });
 
-      // 4. Mark these specific sessions as synced in Firebase!
       const batch = writeBatch(db);
       unsyncedDocs.forEach(id => {
         const sessionRef = doc(db, "sessions", id);
@@ -123,7 +119,7 @@ const DailySyncModal = ({ user, onClose }) => {
       await batch.commit();
 
       setSyncComplete(true);
-      setUnsyncedDocs([]); // Clear the pending list
+      setUnsyncedDocs([]); 
     } catch (error) {
       console.error("GitHub Commit failed:", error);
       alert("Failed to sync to GitHub.");
@@ -141,7 +137,6 @@ const DailySyncModal = ({ user, onClose }) => {
 
         <h2 className="text-2xl font-bold text-white mb-2 tracking-wide">End of Shift</h2>
         
-        {/* Dynamic Subheading based on sync state */}
         <p className="text-slate-400 font-mono text-sm mb-6">
           {unsyncedDocs.length > 0 
             ? `You have ${unsyncedDocs.length} unsynced session(s) pending.` 
