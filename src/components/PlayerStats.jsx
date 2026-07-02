@@ -3,7 +3,6 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Shield, Zap, Terminal, Cpu, Hexagon, Crown, Info } from 'lucide-react';
 
-// The Badge Progression System (Simple & Cool)
 const BADGES = [
   { name: "GHOST", threshold: 0, icon: Shield, color: "text-slate-400", border: "border-slate-800" },
   { name: "RUNNER", threshold: 1000, icon: Terminal, color: "text-emerald-400", border: "border-emerald-500/30" }, 
@@ -19,7 +18,6 @@ const PlayerStats = ({ uid }) => {
   useEffect(() => {
     if (!uid) return;
 
-    // Real-time listener for ALL user sessions to calculate lifetime XP
     const q = query(collection(db, "sessions"), where("uid", "==", uid));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -33,12 +31,10 @@ const PlayerStats = ({ uid }) => {
     return () => unsubscribe();
   }, [uid]);
 
-  // Determine current badge and next badge
   const currentBadgeIndex = [...BADGES].reverse().findIndex(b => totalXp >= b.threshold);
   const currentBadge = BADGES[BADGES.length - 1 - currentBadgeIndex];
   const nextBadge = BADGES[BADGES.length - currentBadgeIndex] || null;
 
-  // Calculate progress percentage
   let progress = 100;
   if (nextBadge) {
     const xpIntoCurrentTier = totalXp - currentBadge.threshold;
@@ -49,34 +45,35 @@ const PlayerStats = ({ uid }) => {
   const Icon = currentBadge.icon;
 
   return (
-    <div className="bg-[#0c0c0c] border border-slate-800 rounded-2xl p-6 shadow-xl mb-8 relative">
+    <div className="bg-[#0c0c0c] border border-emerald-900/30 rounded-2xl p-6 shadow-2xl mb-8 relative overflow-hidden">
+      {/* The Timer Glow Effect */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
+
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Lifetime XP</h2>
+          <h2 className="text-sm font-bold text-emerald-700 uppercase tracking-widest mb-1">Lifetime XP</h2>
           <div className="flex items-baseline space-x-2">
             <span className="text-4xl font-mono font-light text-white">{totalXp.toLocaleString()}</span>
             <span className="text-emerald-500 font-bold font-mono text-sm">XP</span>
           </div>
         </div>
         
-        {/* How it Works Toggle */}
         <button 
           onMouseEnter={() => setShowInfo(true)}
           onMouseLeave={() => setShowInfo(false)}
-          className="text-slate-600 hover:text-amber-400 transition-colors"
+          className="text-emerald-700 hover:text-amber-400 transition-colors"
         >
           <Info className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Info Tooltip (Expanded with Rank List) */}
       {showInfo && (
-        <div className="absolute top-16 right-6 bg-slate-900 border border-amber-500/30 p-5 rounded-xl shadow-2xl z-20 w-72 animate-fade-in">
+        <div className="absolute top-16 right-6 bg-[#0c0c0c] border border-amber-500/30 p-5 rounded-xl shadow-2xl z-20 w-72 animate-fade-in">
           <h4 className="text-amber-400 font-bold text-sm mb-2 uppercase tracking-wider">XP Algorithm</h4>
-          <p className="text-slate-300 text-xs font-mono mb-4 border-b border-slate-800 pb-4">
+          <p className="text-emerald-100/70 text-xs font-mono mb-4 border-b border-emerald-900/30 pb-4">
             Focus time is converted directly into experience points.
             <br />
-            <span className="text-emerald-400 font-bold mt-2 inline-block px-2 py-1 bg-black/50 border border-slate-800 rounded">
+            <span className="text-emerald-400 font-bold mt-2 inline-block px-2 py-1 bg-emerald-950/20 border border-emerald-900/30 rounded">
               1 MINUTE = 10 XP
             </span>
           </p>
@@ -89,34 +86,32 @@ const PlayerStats = ({ uid }) => {
                   <badge.icon className={`w-3 h-3 ${badge.color}`} />
                   <span className={`${badge.color} font-bold`}>{badge.name}</span>
                 </div>
-                <span className="text-slate-500">{badge.threshold.toLocaleString()} XP</span>
+                <span className="text-emerald-700">{badge.threshold.toLocaleString()} XP</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Badge Display Area */}
-      <div className={`flex items-center space-x-4 p-4 rounded-xl bg-black/40 border ${currentBadge.border} mb-4`}>
-        <div className={`p-3 rounded-lg bg-slate-950 border ${currentBadge.border} ${currentBadge.color} shadow-[0_0_15px_rgba(inherit,0.2)]`}>
+      <div className={`flex items-center space-x-4 p-4 rounded-xl bg-emerald-950/10 border ${currentBadge.border} mb-4`}>
+        <div className={`p-3 rounded-lg bg-[#0c0c0c] border ${currentBadge.border} ${currentBadge.color} shadow-[0_0_15px_rgba(inherit,0.1)]`}>
           <Icon className="w-8 h-8" />
         </div>
         <div className="flex-1">
-          <div className="text-xs text-slate-500 font-mono uppercase tracking-widest mb-1">Current Rank</div>
+          <div className="text-xs text-emerald-700 font-mono uppercase tracking-widest mb-1">Current Rank</div>
           <div className={`text-lg font-bold tracking-wider ${currentBadge.color}`}>
             {currentBadge.name}
           </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
       {nextBadge ? (
         <div>
-          <div className="flex justify-between text-[10px] font-mono font-bold text-slate-500 mb-2 uppercase">
+          <div className="flex justify-between text-[10px] font-mono font-bold text-emerald-700 mb-2 uppercase">
             <span>Progress to {nextBadge.name}</span>
             <span>{totalXp} / {nextBadge.threshold} XP</span>
           </div>
-          <div className="w-full bg-slate-900 rounded-full h-2 border border-slate-800 overflow-hidden">
+          <div className="w-full bg-[#0c0c0c] rounded-full h-2 border border-emerald-900/30 overflow-hidden">
             <div 
               className={`h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-1000 ease-out`}
               style={{ width: `${progress}%` }}
