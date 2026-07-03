@@ -97,6 +97,8 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+      
+      {/* Modal Card */}
       <div className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row relative">
         
         {/* Sidebar */}
@@ -130,13 +132,13 @@ const ProfileSettingsModal = ({ user, onClose }) => {
           </button>
 
           {activeTab === 'identity' && (
-            <div className="space-y-6 animate-fade-in flex-1">
+            <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
               <div> 
                 <h2 className="text-lg font-bold text-white mb-1">Network Identity</h2>
                 <p className="text-xs text-slate-400 font-mono">Customize how you appear on the leaderboard.</p>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 mt-2">
                 <img 
                   src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
                   alt="Preview" 
@@ -154,7 +156,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                 </div>
               </div>
 
-              <div>
+              <div className="mt-4">
                 <label className="block text-xs font-mono text-emerald-700 uppercase mb-1">Codename (Nickname)</label>
                 <input 
                   type="text" 
@@ -165,7 +167,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                 />
               </div>
 
-              <div className="pt-2">
+              <div className="mt-auto pt-6">
                 <button 
                   onClick={handleUpdateProfile}
                   disabled={isSaving}
@@ -179,14 +181,17 @@ const ProfileSettingsModal = ({ user, onClose }) => {
           )}
 
           {activeTab === 'data' && (
-            <div className="space-y-6 animate-fade-in flex-1">
+            <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
               <div>
                 <h2 className="text-lg font-bold text-white mb-1">Data Vault</h2>
                 <p className="text-xs text-slate-400 font-mono">Download a local backup of your telemetry.</p>
               </div>
 
-              <div className="bg-[#030712]/50 border border-blue-900/30 p-5 rounded-xl">
+              <div className="bg-[#030712]/50 border border-blue-900/30 p-5 rounded-xl mt-2">
                 <p className="text-sm text-blue-200/70 font-mono mb-6 leading-relaxed">Export all logged focus sessions as a raw JSON file. This includes task names, durations, timestamps, and earned XP.</p>
+              </div>
+              
+              <div className="mt-auto pt-6">
                 <button 
                   onClick={handleExportData}
                   disabled={isSaving}
@@ -200,14 +205,17 @@ const ProfileSettingsModal = ({ user, onClose }) => {
           )}
 
           {activeTab === 'danger' && (
-            <div className="space-y-6 animate-fade-in flex-1">
+            <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
               <div>
                 <h2 className="text-lg font-bold text-white mb-1 text-red-400">Danger Zone</h2>
                 <p className="text-xs text-slate-400 font-mono">Irreversible system actions.</p>
               </div>
 
-              <div className="bg-red-950/10 border border-red-900/30 p-5 rounded-xl">
+              <div className="bg-red-950/10 border border-red-900/30 p-5 rounded-xl mt-2">
                 <p className="text-sm text-red-200/70 font-mono mb-6 leading-relaxed">Permanently delete your Verto account. This will wipe all categories, telemetry, and leaderboard rankings from the Firebase database.</p>
+              </div>
+              
+              <div className="mt-auto pt-6">
                 <button 
                   onClick={handleDeleteAccount}
                   disabled={isSaving}
@@ -219,20 +227,20 @@ const ProfileSettingsModal = ({ user, onClose }) => {
               </div>
             </div>
           )}
-
-          {/* Floating Toast Notification */}
-          {message && (
-            <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-2 px-4 py-2.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] border backdrop-blur-md animate-fade-in whitespace-nowrap ${
-              message.type === 'error' 
-                ? 'bg-red-950/80 border-red-500/50 text-red-400' 
-                : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-400'
-            }`}>
-              {message.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-              <span className="text-xs font-mono font-bold">{message.text}</span>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Floating Toast Notification - MOVED OUTSIDE THE MODAL CARD */}
+      {message && (
+        <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center space-x-2 px-5 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] border backdrop-blur-md animate-fade-in whitespace-nowrap ${
+          message.type === 'error' 
+            ? 'bg-red-950/90 border-red-500/50 text-red-400' 
+            : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400'
+        }`}>
+          {message.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          <span className="text-sm font-mono font-bold">{message.text}</span>
+        </div>
+      )}
     </div>
   );
 };
