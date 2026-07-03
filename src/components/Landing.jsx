@@ -25,7 +25,6 @@ const Landing = ({ onLogin }) => {
       <section className="flex-1 max-w-6xl w-full mx-auto px-6 flex flex-col items-center justify-center text-center relative z-10 pb-20">
         <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-8">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          {/* Formatted to uppercase with slashes */}
           <span className="text-xs font-mono text-emerald-400 font-medium tracking-widest uppercase">VERTO ONLINE // V1.0</span>
         </div>
         
@@ -37,7 +36,6 @@ const Landing = ({ onLogin }) => {
           Track active <span className="font-mono text-emerald-400/80 tracking-tight">focus_nodes</span>, battle your peers in deep-work sprints, and level up your <span className="font-mono text-emerald-400/80 tracking-tight">dev_profile</span>. The ultimate accountability engine.
         </p>
         
-        {/* Subtle Terminal Prompt to balance negative space */}
         <div className="flex items-center space-x-3 text-slate-600 font-mono text-sm mt-4">
            <span className="text-emerald-500">{'>'}</span>
            <span className="animate-pulse">Awaiting authentication sequence...</span>
@@ -49,7 +47,6 @@ const Landing = ({ onLogin }) => {
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500 font-mono">
           <p>© 2026 Verto. All rights reserved.</p>
           <div className="flex items-center space-x-6 mt-4 md:mt-0 uppercase tracking-widest text-xs">
-            {/* Replaced Twitter with Documentation */}
             <a href="#" className="hover:text-white transition-colors duration-300">Documentation</a>
             <a href="#" className="hover:text-white transition-colors duration-300">GitHub</a>
           </div>
@@ -91,12 +88,7 @@ const Landing = ({ onLogin }) => {
               </svg>
               <span className="text-[#e2e8f0] text-[13px] font-medium tracking-wide">Continue with GitHub</span>
             </button>
-
           </div>
-
-          <p className="relative z-10 text-[#64748b] text-[12px] mt-6 animate-modal-pop" style={{animationDelay: '100ms'}}>
-            Verto v1.0.0 - by Yuvraj 2026
-          </p>
         </div>
       )}
 
