@@ -45,7 +45,7 @@ const PlayerStats = ({ uid }) => {
   const Icon = currentBadge.icon;
 
   return (
-    <div className="bg-[#0c0c0c] border border-emerald-900/30 rounded-2xl p-6 shadow-2xl mb-8 relative overflow-hidden">
+    <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-6 shadow-2xl mb-8 relative overflow-hidden">
       {/* The Timer Glow Effect */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
 
@@ -68,7 +68,7 @@ const PlayerStats = ({ uid }) => {
       </div>
 
       {showInfo && (
-        <div className="absolute top-16 right-6 bg-[#0c0c0c] border border-amber-500/30 p-5 rounded-xl shadow-2xl z-20 w-72 animate-fade-in">
+        <div className="absolute top-16 right-6 bg-[#0f1117] border border-amber-500/30 p-5 rounded-xl shadow-2xl z-20 w-72 animate-fade-in">
           <h4 className="text-amber-400 font-bold text-sm mb-2 uppercase tracking-wider">XP Algorithm</h4>
           <p className="text-emerald-100/70 text-xs font-mono mb-4 border-b border-emerald-900/30 pb-4">
             Focus time is converted directly into experience points.
@@ -94,7 +94,7 @@ const PlayerStats = ({ uid }) => {
       )}
 
       <div className={`flex items-center space-x-4 p-4 rounded-xl bg-emerald-950/10 border ${currentBadge.border} mb-4`}>
-        <div className={`p-3 rounded-lg bg-[#0c0c0c] border ${currentBadge.border} ${currentBadge.color} shadow-[0_0_15px_rgba(inherit,0.1)]`}>
+        <div className={`p-3 rounded-lg bg-[#0f1117] border ${currentBadge.border} ${currentBadge.color} shadow-[0_0_15px_rgba(inherit,0.1)]`}>
           <Icon className="w-8 h-8" />
         </div>
         <div className="flex-1">
@@ -111,7 +111,7 @@ const PlayerStats = ({ uid }) => {
             <span>Progress to {nextBadge.name}</span>
             <span>{totalXp} / {nextBadge.threshold} XP</span>
           </div>
-          <div className="w-full bg-[#0c0c0c] rounded-full h-2 border border-emerald-900/30 overflow-hidden">
+          <div className="w-full bg-[#0f1117] rounded-full h-2 border border-emerald-900/30 overflow-hidden">
             <div 
               className={`h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-1000 ease-out`}
               style={{ width: `${progress}%` }}

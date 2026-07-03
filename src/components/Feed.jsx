@@ -92,7 +92,7 @@ const Feed = ({ user }) => {
   };
 
   return (
-    <div className="bg-[#0c0c0c] border border-emerald-900/30 rounded-2xl p-6 h-full min-h-[500px] shadow-2xl relative overflow-hidden flex flex-col">
+    <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-6 h-full min-h-[500px] shadow-2xl relative overflow-hidden flex flex-col">
       {/* The Timer Glow Effect */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
 
@@ -150,7 +150,7 @@ const Feed = ({ user }) => {
                         type="number"
                         value={editMinutes}
                         onChange={(e) => setEditMinutes(e.target.value)}
-                        className="w-16 bg-[#0c0c0c] text-white font-mono text-sm border border-emerald-500 rounded px-2 py-1 outline-none text-center"
+                        className="w-16 bg-[#0f1117] text-white font-mono text-sm border border-emerald-500 rounded px-2 py-1 outline-none text-center"
                         placeholder="Mins"
                       />
                       <button onClick={() => handleUpdate(s.id)} className="text-emerald-400 hover:text-emerald-300"><Save className="w-4 h-4" /></button>
