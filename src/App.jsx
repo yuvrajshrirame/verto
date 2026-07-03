@@ -8,13 +8,14 @@ import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
-import { DatabaseBackup } from "lucide-react";
+import { DatabaseBackup, LogOut } from "lucide-react";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false); // New state for minimal modal
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -37,12 +38,10 @@ function App() {
     }
   };
 
-  const handleLogout = async () => {
-    // Added confirmation safeguard
-    if (window.confirm("Are you sure you want to disconnect from the Verto network?")) {
-      await signOut(auth);
-      localStorage.removeItem("github_token"); 
-    }
+  const executeSignOut = async () => {
+    await signOut(auth);
+    localStorage.removeItem("github_token"); 
+    setIsSignOutModalOpen(false);
   };
 
   if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
@@ -73,7 +72,7 @@ function App() {
                   {user.displayName ? user.displayName.split(" ")[0] : "Hacker"}
                 </p>
                 <button 
-                  onClick={handleLogout} 
+                  onClick={() => setIsSignOutModalOpen(true)} 
                   className="text-emerald-700 hover:text-emerald-400 transition-colors text-[10px] font-mono uppercase tracking-widest mt-1 cursor-pointer"
                 >
                   Sign Out
@@ -111,6 +110,37 @@ function App() {
 
         {isProfileModalOpen && (
           <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />
+        )}
+
+        {/* Minimal Sign-Out Confirmation Modal */}
+        {isSignOutModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-[#0f1117] border border-emerald-900/50 rounded-2xl w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/30">
+                <LogOut className="w-6 h-6 text-emerald-400" />
+              </div>
+              
+              <h2 className="text-lg font-bold text-white mb-2">Disconnect Network?</h2>
+              <p className="text-xs text-slate-400 font-mono mb-6 leading-relaxed">
+                You are about to terminate your current session on the Verto network.
+              </p>
+              
+              <div className="flex w-full space-x-3">
+                <button
+                  onClick={() => setIsSignOutModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl font-bold font-mono text-sm text-slate-400 bg-[#090a0f] border border-emerald-900/30 hover:bg-emerald-900/20 hover:text-white transition-all cursor-pointer"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={executeSignOut}
+                  className="flex-1 py-2.5 rounded-xl font-bold font-mono text-sm text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                >
+                  DISCONNECT
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>
