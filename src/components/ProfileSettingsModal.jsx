@@ -77,7 +77,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
       // 3. Delete Auth User
       await deleteUser(auth.currentUser);
-      // User will be automatically signed out and redirected by onAuthStateChanged in App.jsx
     } catch (error) {
       console.error("Delete error:", error);
       if (error.code === 'auth/requires-recent-login') {
@@ -90,24 +89,24 @@ const ProfileSettingsModal = ({ user, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row relative">
         
         {/* Sidebar */}
         <div className="w-full md:w-1/3 bg-[#090a0f] border-b md:border-b-0 md:border-r border-emerald-900/30 p-4 flex flex-col space-y-2">
           <h3 className="text-emerald-700 font-mono text-xs font-bold uppercase tracking-widest mb-4 px-2">Settings</h3>
           
-          <button onClick={() => setActiveTab('identity')} className={`flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'identity' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
+          <button onClick={() => setActiveTab('identity')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'identity' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
             <User className="w-4 h-4" />
             <span>Identity</span>
           </button>
           
-          <button onClick={() => setActiveTab('data')} className={`flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'data' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
+          <button onClick={() => setActiveTab('data')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'data' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
             <Database className="w-4 h-4" />
             <span>Data Export</span>
           </button>
 
-          <button onClick={() => setActiveTab('danger')} className={`flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'danger' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
+          <button onClick={() => setActiveTab('danger')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'danger' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
             <AlertOctagon className="w-4 h-4" />
             <span>Danger Zone</span>
           </button>
@@ -115,33 +114,43 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
         {/* Content Area */}
         <div className="flex-1 p-6 relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-emerald-400 transition-colors">
+          
+          {/* Bulletproof Close Button with z-10 and background plate */}
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 z-10 p-1.5 bg-[#0f1117] rounded-lg text-slate-500 hover:text-emerald-400 border border-transparent hover:border-emerald-900/50 transition-all cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
 
           {message && (
-            <div className={`p-3 rounded-lg text-xs font-mono mb-6 border ${message.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'}`}>
+            <div className={`p-3 rounded-lg text-xs font-mono mb-6 pr-8 border ${message.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'}`}>
               {message.text}
             </div>
           )}
 
           {activeTab === 'identity' && (
             <div className="space-y-5 animate-fade-in">
-              <div>
+              <div className="pr-10"> {/* Safe zone for the absolute close button */}
                 <h2 className="text-lg font-bold text-white mb-1">Network Identity</h2>
                 <p className="text-xs text-slate-400 font-mono mb-4">Customize how you appear on the leaderboard.</p>
               </div>
 
               <div className="flex items-center space-x-4 mb-4">
-                <img src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} alt="Preview" className="w-16 h-16 rounded-full border border-emerald-500/50 bg-[#090a0f]" />
-                <div className="flex-1">
+                {/* Added object-cover and shrink-0 to prevent layout breakage */}
+                <img 
+                  src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
+                  alt="Preview" 
+                  className="w-16 h-16 rounded-full border border-emerald-500/50 bg-[#090a0f] object-cover shrink-0" 
+                />
+                <div className="flex-1 min-w-0">
                   <label className="block text-xs font-mono text-emerald-700 uppercase mb-1">Avatar URL</label>
                   <input 
                     type="text" 
                     value={photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-[#030712]/50 text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded px-3 py-2 outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full bg-[#030712]/50 text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded px-3 py-2 outline-none focus:border-emerald-500 transition-colors truncate"
                   />
                 </div>
               </div>
@@ -160,7 +169,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
               <button 
                 onClick={handleUpdateProfile}
                 disabled={isSaving}
-                className="w-full flex items-center justify-center space-x-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl font-bold font-mono transition-all mt-4 disabled:opacity-50"
+                className="w-full flex items-center justify-center space-x-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl font-bold font-mono transition-all mt-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 <span>{isSaving ? 'UPDATING...' : 'SAVE IDENTITY'}</span>
@@ -170,7 +179,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
           {activeTab === 'data' && (
             <div className="space-y-4 animate-fade-in">
-              <div>
+              <div className="pr-10">
                 <h2 className="text-lg font-bold text-white mb-1">Data Vault</h2>
                 <p className="text-xs text-slate-400 font-mono mb-4">Download a local backup of your telemetry.</p>
               </div>
@@ -180,7 +189,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                 <button 
                   onClick={handleExportData}
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center space-x-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 py-2.5 rounded-xl font-bold font-mono transition-all disabled:opacity-50"
+                  className="w-full flex items-center justify-center space-x-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 py-2.5 rounded-xl font-bold font-mono transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="w-4 h-4" />
                   <span>{isSaving ? 'PACKAGING...' : 'DOWNLOAD JSON'}</span>
@@ -191,7 +200,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
           {activeTab === 'danger' && (
             <div className="space-y-4 animate-fade-in">
-              <div>
+              <div className="pr-10">
                 <h2 className="text-lg font-bold text-white mb-1 text-red-400">Danger Zone</h2>
                 <p className="text-xs text-slate-400 font-mono mb-4">Irreversible system actions.</p>
               </div>
@@ -201,7 +210,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                 <button 
                   onClick={handleDeleteAccount}
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center space-x-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 py-2.5 rounded-xl font-bold font-mono transition-all disabled:opacity-50"
+                  className="w-full flex items-center justify-center space-x-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 py-2.5 rounded-xl font-bold font-mono transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>{isSaving ? 'PURGING...' : 'TERMINATE ACCOUNT'}</span>
