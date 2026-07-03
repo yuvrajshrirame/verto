@@ -7,14 +7,14 @@ import Feed from "./components/Feed";
 import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
-import ProfileSettingsModal from "./components/ProfileSettingsModal"; // 1. Import
+import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import { DatabaseBackup } from "lucide-react";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // 2. State
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -38,8 +38,11 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
-    localStorage.removeItem("github_token"); 
+    // Added confirmation safeguard
+    if (window.confirm("Are you sure you want to disconnect from the Verto network?")) {
+      await signOut(auth);
+      localStorage.removeItem("github_token"); 
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
@@ -58,31 +61,33 @@ function App() {
           <div className="flex items-center space-x-6">
             <button 
               onClick={() => setIsSyncModalOpen(true)}
-              className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-mono text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.1)]"
+              className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-mono text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.1)] cursor-pointer"
             >
               <DatabaseBackup className="w-4 h-4" />
               <span>DAILY SYNC</span>
             </button>
 
-            {/* 3. Wrapped profile in an interactive group */}
             <div className="flex items-center space-x-4 border-l border-emerald-900/30 pl-6">
               <div className="text-right">
                 <p className="text-white text-sm font-medium">
                   {user.displayName ? user.displayName.split(" ")[0] : "Hacker"}
                 </p>
-                <button onClick={handleLogout} className="text-emerald-700 hover:text-emerald-400 transition-colors text-[10px] font-mono uppercase tracking-widest mt-1">
+                <button 
+                  onClick={handleLogout} 
+                  className="text-emerald-700 hover:text-emerald-400 transition-colors text-[10px] font-mono uppercase tracking-widest mt-1 cursor-pointer"
+                >
                   Sign Out
                 </button>
               </div>
               <button 
                 onClick={() => setIsProfileModalOpen(true)}
-                className="relative group focus:outline-none"
+                className="relative group focus:outline-none cursor-pointer"
                 title="Account Settings"
               >
                 <img 
                   src={user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
                   alt="Profile" 
-                  className="w-9 h-9 rounded-full border border-emerald-900/50 group-hover:border-emerald-400 transition-colors cursor-pointer" 
+                  className="w-9 h-9 rounded-full border border-emerald-900/50 group-hover:border-emerald-400 transition-colors object-cover shrink-0" 
                 />
                 <div className="absolute inset-0 rounded-full bg-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
@@ -104,7 +109,6 @@ function App() {
           <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} />
         )}
 
-        {/* 4. Mount Profile Modal */}
         {isProfileModalOpen && (
           <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />
         )}
