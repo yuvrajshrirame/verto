@@ -10,7 +10,7 @@ const Timer = ({ user }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isCapped, setIsCapped] = useState(false);
   
-  // Zero Hardcoded Values[cite: 1]
+  // Zero Hardcoded Values
   const [categories, setCategories] = useState([]);
   const [selectedTask, setSelectedTask] = useState('');
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -39,7 +39,7 @@ const Timer = ({ user }) => {
     fetchCategories();
   }, [user.uid]);
 
-  // Feature 1: Stabilized Interval & 4-Hour Cap
+  // Stabilized Interval & 4-Hour Cap
   useEffect(() => {
     let interval = null;
     if (isActive) {
@@ -55,21 +55,7 @@ const Timer = ({ user }) => {
     };
   }, [isActive, seconds]);
 
-  // Feature 2: Dynamic Browser Tab Title
-  useEffect(() => {
-    if (isActive) {
-      const getSeconds = `0${(seconds % 60)}`.slice(-2);
-      const minutes = `${Math.floor(seconds / 60)}`;
-      const getMinutes = `0${minutes % 60}`.slice(-2);
-      const getHours = `0${Math.floor(seconds / 3600)}`.slice(-2);
-      const formatted = `${getHours}:${getMinutes}:${getSeconds}`;
-      document.title = `(${formatted}) Verto | ${selectedTask || 'Focus'}`;
-    } else {
-      document.title = 'Verto.';
-    }
-  }, [seconds, isActive, selectedTask]);
-
-  // Feature 3: Reload Protection
+  // Reload Protection
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isActive || seconds > 0) {
@@ -142,7 +128,6 @@ const Timer = ({ user }) => {
 
   return (
     <>
-      {/* Updated to Emerald/Slate Glassmorphism wrapper */}
       <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
 
