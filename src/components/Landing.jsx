@@ -69,10 +69,14 @@ const Landing = ({ onLogin }) => {
             onClick={(e) => e.stopPropagation()}
           >
             
-            <div className="w-11 h-11 bg-gradient-to-b from-[#4ade80] to-[#16a34a] rounded-[14px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)] mb-6"></div>
+            <img 
+              src="/verto-logo.png" 
+              alt="Verto Logo" 
+              className="w-11 h-11 object-contain mb-6" 
+            />
             
-            <p className="text-white font-semibold text-[15px] mb-4 tracking-wide">
-              Verto Tracker
+            <p className="text-white font-bold text-[15px] mb-4 tracking-wider">
+              VERTO<span className="text-emerald-500">.</span>
             </p>
             
             <h2 className="text-[32px] font-semibold text-white leading-[1.15] tracking-tight mb-8">
