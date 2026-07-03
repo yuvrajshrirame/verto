@@ -6,13 +6,15 @@ import Timer from "./components/Timer";
 import Feed from "./components/Feed";   
 import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
-import AnimatedBackground from "./components/AnimatedBackground"; // 1. Import it
+import AnimatedBackground from "./components/AnimatedBackground";
+import ProfileSettingsModal from "./components/ProfileSettingsModal"; // 1. Import
 import { DatabaseBackup } from "lucide-react";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // 2. State
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -40,16 +42,13 @@ function App() {
     localStorage.removeItem("github_token"); 
   };
 
-  // 2. Remove the old background color class from the loading screen
-  if (loading) return <div className="min-h-screen bg-[#030712]" />;
+  if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
   if (!user) return <Landing onLogin={handleLogin} />;
 
   return (
     <>
-      {/* 3. Mount the animated background */}
       <AnimatedBackground />
       
-      {/* 4. Remove bg-[#050505] from the main wrapper so it becomes transparent */}
       <div className="min-h-screen relative p-6 selection:bg-emerald-500/30 z-10">
         <header className="flex justify-between items-center mb-10 max-w-5xl mx-auto border-b border-emerald-900/30 pb-4">
           <h1 className="text-2xl font-bold text-white tracking-wider">
@@ -65,6 +64,7 @@ function App() {
               <span>DAILY SYNC</span>
             </button>
 
+            {/* 3. Wrapped profile in an interactive group */}
             <div className="flex items-center space-x-4 border-l border-emerald-900/30 pl-6">
               <div className="text-right">
                 <p className="text-white text-sm font-medium">
@@ -74,7 +74,18 @@ function App() {
                   Sign Out
                 </button>
               </div>
-              <img src={user.photoURL || 'https://via.placeholder.com/40'} alt="Profile" className="w-9 h-9 rounded-full border border-emerald-900/50" />
+              <button 
+                onClick={() => setIsProfileModalOpen(true)}
+                className="relative group focus:outline-none"
+                title="Account Settings"
+              >
+                <img 
+                  src={user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
+                  alt="Profile" 
+                  className="w-9 h-9 rounded-full border border-emerald-900/50 group-hover:border-emerald-400 transition-colors cursor-pointer" 
+                />
+                <div className="absolute inset-0 rounded-full bg-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
             </div>
           </div>
         </header>
@@ -91,6 +102,11 @@ function App() {
 
         {isSyncModalOpen && (
           <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} />
+        )}
+
+        {/* 4. Mount Profile Modal */}
+        {isProfileModalOpen && (
+          <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />
         )}
       </div>
     </>
