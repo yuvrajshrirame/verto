@@ -11,7 +11,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Auto-dismiss the toast after 4 seconds
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => setMessage(null), 4000);
@@ -19,7 +18,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
     }
   }, [message]);
 
-  // Clear message instantly when switching tabs
   useEffect(() => {
     setMessage(null);
   }, [activeTab]);
@@ -96,10 +94,17 @@ const ProfileSettingsModal = ({ user, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+    // 1. Added onClick={onClose} to the backdrop wrapper
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+      onClick={onClose}
+    >
       
-      {/* Modal Card */}
-      <div className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row relative">
+      {/* 2. Added onClick={(e) => e.stopPropagation()} to prevent closing when clicking inside the modal */}
+      <div 
+        className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Sidebar */}
         <div className="w-full md:w-1/3 bg-[#090a0f] border-b md:border-b-0 md:border-r border-emerald-900/30 p-4 flex flex-col space-y-2">
@@ -230,7 +235,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
         </div>
       </div>
 
-      {/* Floating Toast Notification - MOVED OUTSIDE THE MODAL CARD */}
       {message && (
         <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center space-x-2 px-5 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] border backdrop-blur-md animate-fade-in whitespace-nowrap ${
           message.type === 'error' 

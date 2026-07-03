@@ -15,7 +15,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false); // New state for minimal modal
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -112,17 +112,22 @@ function App() {
           <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />
         )}
 
-        {/* Minimal Sign-Out Confirmation Modal */}
         {isSignOutModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-[#0f1117] border border-emerald-900/50 rounded-2xl w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative flex flex-col items-center text-center">
+          <div 
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+            onClick={() => setIsSignOutModalOpen(false)}
+          >
+            <div 
+              className="bg-[#0f1117] border border-emerald-900/50 rounded-2xl w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative flex flex-col items-center text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/30">
                 <LogOut className="w-6 h-6 text-emerald-400" />
               </div>
               
-              <h2 className="text-lg font-bold text-white mb-2">Disconnect Network?</h2>
+              <h2 className="text-lg font-bold text-white mb-2">Sign Out?</h2>
               <p className="text-xs text-slate-400 font-mono mb-6 leading-relaxed">
-                You are about to terminate your current session on the Verto network.
+                You will need to sign back in with GitHub to access your focus logs and continue earning XP.
               </p>
               
               <div className="flex w-full space-x-3">
@@ -136,7 +141,7 @@ function App() {
                   onClick={executeSignOut}
                   className="flex-1 py-2.5 rounded-xl font-bold font-mono text-sm text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                 >
-                  DISCONNECT
+                  SIGN OUT
                 </button>
               </div>
             </div>
