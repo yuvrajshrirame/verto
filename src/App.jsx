@@ -8,7 +8,10 @@ import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
+import SpotifyEngine from "./components/SpotifyEngine";
 import { DatabaseBackup, LogOut, X } from "lucide-react";
+
+import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,6 +19,8 @@ function App() {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  
+  const [spotifyToken, setSpotifyToken] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -23,6 +28,27 @@ function App() {
       setLoading(false);
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const checkSpotifyAuth = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      if (code) {
+        window.history.replaceState({}, document.title, "/"); 
+        
+        const token = await getTokenFromCode(code);
+        if (token) setSpotifyToken(token);
+      } else {
+        const savedToken = localStorage.getItem("spotify_token");
+        if (savedToken) {
+          setSpotifyToken(savedToken);
+        }
+      }
+    };
+    
+    checkSpotifyAuth();
   }, []);
 
   const handleLogin = async () => {
@@ -37,6 +63,7 @@ function App() {
   const executeSignOut = async () => {
     await signOut(auth);
     localStorage.removeItem("github_token"); 
+    localStorage.removeItem("spotify_token"); 
     setIsSignOutModalOpen(false);
   };
 
@@ -47,7 +74,7 @@ function App() {
     <>
       <AnimatedBackground />
       
-      <div className="min-h-screen relative p-6 selection:bg-emerald-500/30 z-10 overflow-x-hidden md:overflow-hidden">
+      <div className="min-h-screen relative p-6 selection:bg-emerald-500/30 z-10 overflow-x-hidden md:overflow-auto">
         
         <header className="flex justify-between items-center mb-6 max-w-5xl mx-auto border-b border-emerald-900/30 pb-4 shrink-0">
           <h1 className="text-2xl font-bold text-white tracking-wider">
@@ -55,7 +82,20 @@ function App() {
           </h1>
           
           <div className="flex items-center space-x-6">
-            {/* UPDATED: Green, glowing header button */}
+            
+            {!spotifyToken ? (
+              <button 
+                onClick={redirectToSpotifyAuth}
+                className="flex items-center space-x-2 text-green-400 hover:text-green-300 border border-green-500/50 bg-green-500/20 px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition-all shadow-[0_0_10px_rgba(34,197,94,0.2)] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] cursor-pointer"
+              >
+                <span>INIT SPOTIFY</span>
+              </button>
+            ) : (
+              <div className="flex items-center space-x-2 text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-default">
+                <span>AUDIO LINKED</span>
+              </div>
+            )}
+
             <button 
               onClick={() => setIsSyncModalOpen(true)} 
               className="flex items-center space-x-2 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 bg-emerald-500/20 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-pointer transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
@@ -86,16 +126,23 @@ function App() {
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-5 md:h-[calc(100vh-120px)] md:min-h-[550px] pb-4">
+        {/* UPDATED: Changed from md:h-[calc(100vh-120px)] to md:min-h-[calc(100vh-120px)] */}
+        <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-5 md:min-h-[calc(100vh-120px)] pb-10">
           
-          <div className="flex-1 w-full flex flex-col gap-5 md:h-full">
+          {/* UPDATED: Removed md:h-full from columns so they can grow */}
+          <div className="flex-1 w-full flex flex-col gap-5">
             <PlayerStats uid={user.uid} />
-            <div className="flex-1 min-h-[400px] md:min-h-0 [&>div]:h-full">
+            
+            <div className="flex-1 min-h-[400px] [&>div]:h-full">
               <Timer user={user} />
             </div>
+
+            {spotifyToken && (
+              <SpotifyEngine token={spotifyToken} />
+            )}
           </div>
 
-          <div className="flex-1 w-full md:h-full">
+          <div className="flex-1 w-full">
             <Feed user={user} />
           </div>
           
