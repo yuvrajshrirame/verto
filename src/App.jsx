@@ -100,15 +100,18 @@ function App() {
           
         </main>
 
-        {/* Render Modals */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
-        {/* Inline Sign Out Modal */}
         {isSignOutModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4">
-            <div className="bg-[#0f1117] border border-red-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.1)] w-full max-w-sm relative transform scale-100 transition-transform">
-              
+          <div 
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
+            onClick={() => setIsSignOutModalOpen(false)}
+          >
+            <div 
+              className="bg-[#0f1117] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button 
                 onClick={() => setIsSignOutModalOpen(false)} 
                 className="absolute top-4 right-4 text-emerald-700 hover:text-emerald-400 transition-colors cursor-pointer"
@@ -117,16 +120,16 @@ function App() {
               </button>
       
               <div className="flex flex-col items-center text-center mt-2">
-                <div className="p-4 rounded-full bg-red-500/10 border border-red-500/30 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-                  <LogOut className="w-8 h-8 text-red-400" />
+                <div className="p-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                  <LogOut className="w-8 h-8 text-emerald-400" />
                 </div>
                 
                 <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
-                  System Disconnect
+                  Sign Out
                 </h2>
                 
                 <p className="text-emerald-700/80 text-xs font-mono mb-8">
-                  Are you sure you want to terminate the current session and sign out?
+                  Are you sure you want to sign out?
                 </p>
                 
                 <div className="flex w-full space-x-3">
@@ -138,9 +141,9 @@ function App() {
                   </button>
                   <button 
                     onClick={executeSignOut} 
-                    className="flex-1 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-mono font-bold text-xs tracking-wider hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] transition-all cursor-pointer"
+                    className="flex-1 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all cursor-pointer"
                   >
-                    TERMINATE
+                    SIGN OUT
                   </button>
                 </div>
               </div>
