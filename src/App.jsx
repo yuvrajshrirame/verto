@@ -8,13 +8,14 @@ import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
-import { DatabaseBackup } from "lucide-react";
+import { DatabaseBackup, LogOut, X } from "lucide-react";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -33,11 +34,10 @@ function App() {
     }
   };
 
-  const handleSignOut = async () => {
-    if (window.confirm("Are you sure you want to sign out?")) {
-      await signOut(auth);
-      localStorage.removeItem("github_token"); 
-    }
+  const executeSignOut = async () => {
+    await signOut(auth);
+    localStorage.removeItem("github_token"); 
+    setIsSignOutModalOpen(false);
   };
 
   if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
@@ -47,7 +47,6 @@ function App() {
     <>
       <AnimatedBackground />
       
-      {/* FIX 1: Allow vertical scrolling on mobile, but keep overflow hidden on desktop (md:overflow-hidden) */}
       <div className="min-h-screen relative p-6 selection:bg-emerald-500/30 z-10 overflow-x-hidden md:overflow-hidden">
         
         <header className="flex justify-between items-center mb-6 max-w-5xl mx-auto border-b border-emerald-900/30 pb-4 shrink-0">
@@ -70,7 +69,7 @@ function App() {
                   {user.displayName ? user.displayName.split(" ")[0] : "Hacker"}
                 </p>
                 <button 
-                  onClick={handleSignOut} 
+                  onClick={() => setIsSignOutModalOpen(true)} 
                   className="text-emerald-700 hover:text-emerald-400 transition-colors text-[10px] font-mono uppercase tracking-widest mt-1 cursor-pointer"
                 >
                   Sign Out
@@ -86,29 +85,68 @@ function App() {
           </div>
         </header>
 
-        {/* FIX 2: Apply the strict height calculations ONLY on medium (md:) screens and above */}
         <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-5 md:h-[calc(100vh-120px)] md:min-h-[550px] pb-4">
           
-          {/* Left Column */}
           <div className="flex-1 w-full flex flex-col gap-5 md:h-full">
             <PlayerStats uid={user.uid} />
-            
-            {/* FIX 3: Give the Timer a min-height on mobile so it doesn't get crushed when stacked */}
             <div className="flex-1 min-h-[400px] md:min-h-0 [&>div]:h-full">
               <Timer user={user} />
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="flex-1 w-full md:h-full">
             <Feed user={user} />
           </div>
           
         </main>
 
-        {/* Modals */}
+        {/* Render Modals */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
+        
+        {/* Inline Sign Out Modal */}
+        {isSignOutModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4">
+            <div className="bg-[#0f1117] border border-red-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.1)] w-full max-w-sm relative transform scale-100 transition-transform">
+              
+              <button 
+                onClick={() => setIsSignOutModalOpen(false)} 
+                className="absolute top-4 right-4 text-emerald-700 hover:text-emerald-400 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+      
+              <div className="flex flex-col items-center text-center mt-2">
+                <div className="p-4 rounded-full bg-red-500/10 border border-red-500/30 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+                  <LogOut className="w-8 h-8 text-red-400" />
+                </div>
+                
+                <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
+                  System Disconnect
+                </h2>
+                
+                <p className="text-emerald-700/80 text-xs font-mono mb-8">
+                  Are you sure you want to terminate the current session and sign out?
+                </p>
+                
+                <div className="flex w-full space-x-3">
+                  <button 
+                    onClick={() => setIsSignOutModalOpen(false)} 
+                    className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                  >
+                    CANCEL
+                  </button>
+                  <button 
+                    onClick={executeSignOut} 
+                    className="flex-1 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-mono font-bold text-xs tracking-wider hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] transition-all cursor-pointer"
+                  >
+                    TERMINATE
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
