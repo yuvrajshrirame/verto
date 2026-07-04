@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { X, CheckCircle2 } from 'lucide-react';
+import { X, CheckCircle2, DatabaseBackup, RefreshCw } from 'lucide-react';
 
 const GithubIcon = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -52,7 +52,6 @@ const DailySyncModal = ({ user, onClose }) => {
     fetchTodaySessions();
   }, [user.uid]);
 
-  // UPDATED: Precise time formatting
   const formatTime = (totalSeconds) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -129,55 +128,95 @@ const DailySyncModal = ({ user, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
-      <div className="bg-[#0a0f16] border border-amber-500/30 w-full max-w-md rounded-2xl p-8 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors">
+    <div 
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[#0f1117] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button 
+          onClick={onClose} 
+          disabled={isSyncing}
+          className="absolute top-4 right-4 text-emerald-700 hover:text-emerald-400 disabled:opacity-50 transition-colors cursor-pointer"
+        >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-white mb-2 tracking-wide">End of Shift</h2>
-        
-        <p className="text-slate-400 font-mono text-sm mb-6">
-          {unsyncedDocs.length > 0 
-            ? `You have ${unsyncedDocs.length} unsynced session(s) pending.` 
-            : "All sessions are synced for today."}
-        </p>
-
-        <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 mb-8 min-h-[120px]">
-          <div className="text-xs text-slate-500 font-mono mb-3 uppercase tracking-widest border-b border-slate-800 pb-2">
-            Today's Grand Total
+        <div className="flex flex-col items-center text-center mt-2">
+          <div className="p-4 rounded-full mb-4 transition-colors duration-300 bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+            {syncComplete || (unsyncedDocs.length === 0 && !isSyncing) ? (
+              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+            ) : (
+              <DatabaseBackup className={`w-8 h-8 text-emerald-400 ${isSyncing ? 'animate-pulse' : ''}`} />
+            )}
           </div>
-          {sessions.length === 0 ? (
-            <div className="flex h-[80px] items-center justify-center text-slate-500 font-mono text-sm">
-              No sessions logged today.
+          
+          <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
+            {syncComplete || (unsyncedDocs.length === 0 && !isSyncing) ? 'Sync Complete' : 'Daily Sync'}
+          </h2>
+          
+          <p className="text-emerald-700/80 text-xs font-mono mb-6">
+            {unsyncedDocs.length > 0 
+              ? `You have ${unsyncedDocs.length} unsynced session(s) pending.` 
+              : "All sessions are synced for today."}
+          </p>
+
+          <div className="bg-[#090a0f]/80 w-full border border-emerald-900/20 rounded-xl p-4 mb-6 min-h-[100px]">
+            <div className="text-[10px] text-emerald-700 font-mono mb-3 uppercase tracking-widest border-b border-emerald-900/30 pb-2 text-left">
+              Today's Grand Total
             </div>
-          ) : (
-            <ul className="space-y-3">
-              {sessions.map((s, idx) => (
-                <li key={idx} className="flex justify-between items-center text-sm">
-                  <span className="text-amber-400 font-mono">_{s.task}</span>
-                  <span className="text-slate-300 font-bold">{formatTime(s.duration)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {syncComplete || unsyncedDocs.length === 0 ? (
-          <div className="flex items-center justify-center space-x-2 bg-slate-900 text-slate-500 border border-slate-800 py-3 rounded-xl w-full cursor-not-allowed">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            <span className="font-mono font-bold text-emerald-500">ALL CAUGHT UP</span>
+            {sessions.length === 0 ? (
+              <div className="flex h-[50px] items-center justify-center text-emerald-700 font-mono text-xs">
+                No sessions logged today.
+              </div>
+            ) : (
+              <ul className="space-y-2 text-left">
+                {sessions.map((s, idx) => (
+                  <li key={idx} className="flex justify-between items-center text-xs">
+                    <span className="text-emerald-400 font-mono">_{s.task}</span>
+                    <span className="text-emerald-100/90 font-bold font-mono">{formatTime(s.duration)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        ) : (
-          <button 
-            onClick={pushDailyCommit}
-            disabled={isSyncing}
-            className="flex items-center justify-center space-x-2 bg-amber-500 text-slate-950 py-3 rounded-xl font-bold w-full hover:bg-amber-400 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)]"
-          >
-            <GithubIcon className="w-5 h-5" />
-            <span>{isSyncing ? 'ENCRYPTING & SYNCING...' : `SYNC ${unsyncedDocs.length} NEW SESSION(S)`}</span>
-          </button>
-        )}
+          
+          <div className="flex w-full space-x-3">
+            <button 
+              onClick={onClose} 
+              disabled={isSyncing}
+              className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 disabled:opacity-50 transition-colors cursor-pointer"
+            >
+              CANCEL
+            </button>
+
+            {syncComplete || unsyncedDocs.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono font-bold text-xs tracking-wider cursor-not-allowed">
+                <span>ALL SYNCED</span>
+              </div>
+            ) : (
+              <button 
+                onClick={pushDailyCommit} 
+                disabled={isSyncing}
+                className="flex-[1.5] flex items-center justify-center space-x-2 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>ENCRYPTING...</span>
+                  </>
+                ) : (
+                  <>
+                    <GithubIcon className="w-4 h-4" />
+                    <span>SYNC {unsyncedDocs.length} LOG(S)</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

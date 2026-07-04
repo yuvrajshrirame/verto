@@ -55,9 +55,10 @@ function App() {
           </h1>
           
           <div className="flex items-center space-x-6">
+            {/* UPDATED: Green, glowing header button */}
             <button 
               onClick={() => setIsSyncModalOpen(true)} 
-              className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-pointer transition-colors"
+              className="flex items-center space-x-2 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 bg-emerald-500/20 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-pointer transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
             >
               <DatabaseBackup className="w-4 h-4 hidden sm:block" />
               <span>DAILY SYNC</span>
