@@ -83,7 +83,6 @@ const Feed = ({ user }) => {
   const paginatedLeaderboard = leaderboard.slice((boardPage - 1) * ITEMS_PER_PAGE, boardPage * ITEMS_PER_PAGE);
 
   return (
-    // Responsive height fix: h-[500px] for mobile, h-full for desktop
     <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-5 shadow-2xl relative flex flex-col h-[500px] md:h-full">
       
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
@@ -108,31 +107,31 @@ const Feed = ({ user }) => {
             ) : (
               paginatedSessions.map((s) => (
                 <div key={s.id} className="group flex justify-between items-center bg-[#090a0f]/80 border border-emerald-900/20 hover:border-emerald-500/30 p-3.5 rounded-xl transition-all duration-300">
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-1.5">
                     <div className="flex items-center space-x-2">
-                      <span className="text-emerald-400 font-mono text-xs tracking-widest uppercase">{s.task}</span>
-                      {s.synced && <span className="text-slate-600 font-mono text-[9px] tracking-widest lowercase">(synced)</span>}
+                      <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">{s.task}</span>
+                      {s.synced && <span className="text-slate-600 font-mono text-[10px] tracking-widest lowercase">(synced)</span>}
                     </div>
-                    <div className="flex items-center space-x-2 text-[9px] font-mono text-emerald-700/80 uppercase tracking-widest">
+                    <div className="flex items-center space-x-2 text-xs font-mono text-emerald-700/80 uppercase tracking-widest">
                       <span>{s.timestamp ? new Date(s.timestamp.toDate()).toLocaleDateString() : 'Just now'}</span>
                       <span className="text-emerald-900/50">•</span>
-                      <span className="text-emerald-500/80">{s.xp} XP</span>
+                      <span className="text-emerald-500/80 font-bold">{s.xp} XP</span>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     {editingId === s.id ? (
                       <div className="flex items-center space-x-1.5">
-                        <input type="number" value={editMinutes} onChange={(e) => setEditMinutes(e.target.value)} className="w-14 bg-[#030712] text-emerald-100 font-mono text-xs border border-emerald-900/50 rounded-md px-1.5 py-1 outline-none text-center focus:border-emerald-500 transition-colors" placeholder="Min" />
-                        <button onClick={() => handleUpdate(s.id)} className="p-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"><Save className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setEditingId(null)} className="p-1 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                        <input type="number" value={editMinutes} onChange={(e) => setEditMinutes(e.target.value)} className="w-14 bg-[#030712] text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded-md px-1.5 py-1 outline-none text-center focus:border-emerald-500 transition-colors" placeholder="Min" />
+                        <button onClick={() => handleUpdate(s.id)} className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"><Save className="w-4 h-4" /></button>
+                        <button onClick={() => setEditingId(null)} className="p-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
                       <>
-                        <span className="text-emerald-100/90 font-bold font-mono text-sm tracking-wider">{formatTime(s.duration)}</span>
+                        <span className="text-emerald-100/90 font-bold font-mono text-base tracking-wider">{formatTime(s.duration)}</span>
                         <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <button onClick={() => { setEditingId(s.id); setEditMinutes(Math.floor(s.duration / 60)); }} className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors cursor-pointer"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDelete(s.id)} className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { setEditingId(s.id); setEditMinutes(Math.floor(s.duration / 60)); }} className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors cursor-pointer"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(s.id)} className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </>
                     )}
@@ -150,14 +149,22 @@ const Feed = ({ user }) => {
             ) : (
               paginatedLeaderboard.map((player, idx) => {
                 const globalRank = (boardPage - 1) * ITEMS_PER_PAGE + idx + 1;
+                // Determine if this leaderboard row belongs to the currently logged-in user
+                const isCurrentUser = player.uid === user.uid;
+                
                 return (
-                  <div key={player.uid} className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${player.uid === user.uid ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-[#090a0f]/80 border-emerald-900/20'}`}>
+                  <div key={player.uid} className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${isCurrentUser ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-[#090a0f]/80 border-emerald-900/20'}`}>
                     <div className="flex items-center space-x-4">
                       <span className={`font-mono font-bold w-5 text-center text-base ${globalRank === 1 ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]' : globalRank === 2 ? 'text-slate-300' : globalRank === 3 ? 'text-amber-700' : 'text-emerald-700 text-xs'}`}>#{globalRank}</span>
-                      <img src={player.photo} alt={player.name} className={`w-8 h-8 rounded-full border ${player.uid === user.uid ? 'border-emerald-500' : 'border-emerald-900/50'}`} />
+                      
+                      {/* Use live user.photoURL if it's the current user, otherwise use DB photo */}
+                      <img src={isCurrentUser ? user.photoURL : player.photo} alt={player.name} className={`w-8 h-8 rounded-full border object-cover ${isCurrentUser ? 'border-emerald-500' : 'border-emerald-900/50'}`} />
+                      
                       <div className="flex flex-col">
-                        <span className="font-bold text-sm text-emerald-100/90">{player.name}</span>
-                        {player.uid === user.uid && <span className="text-[9px] text-emerald-400 font-mono">YOU</span>}
+                        <span className="font-bold text-sm text-emerald-100/90">
+                          {isCurrentUser && user.displayName ? user.displayName.split(" ")[0] : player.name}
+                        </span>
+                        {isCurrentUser && <span className="text-[9px] text-emerald-400 font-mono">YOU</span>}
                       </div>
                     </div>
                     <span className="font-mono font-bold text-emerald-400 text-sm tracking-wider">{player.totalXp} XP</span>
