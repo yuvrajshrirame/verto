@@ -92,11 +92,11 @@ const Feed = ({ user }) => {
   };
 
   return (
-    <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-6 h-full min-h-[500px] shadow-2xl relative overflow-hidden flex flex-col">
-      {/* The Timer Glow Effect */}
+    <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden flex flex-col h-[calc(100vh-140px)] min-h-[500px]">
+      
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-400 blur-sm opacity-50"></div>
 
-      <div className="bg-emerald-950/20 rounded-xl p-1 mb-6 border border-emerald-900/30 shadow-inner">
+      <div className="bg-emerald-950/20 rounded-xl p-1 mb-6 border border-emerald-900/30 shadow-inner shrink-0">
         <div className="relative flex w-full">
           <div 
             className={`absolute top-0 bottom-0 w-1/2 bg-emerald-500 rounded-lg transition-all duration-300 ease-out ${
@@ -106,7 +106,7 @@ const Feed = ({ user }) => {
           
           <button
             onClick={() => setActiveTab('log')}
-            className={`flex-1 flex items-center justify-center space-x-2 relative z-10 py-2.5 text-xs font-bold font-mono rounded-lg transition-colors duration-300 ${
+            className={`flex-1 flex items-center justify-center space-x-2 relative z-10 py-2.5 text-xs font-bold font-mono rounded-lg transition-colors duration-300 cursor-pointer ${
               activeTab === 'log' ? 'text-slate-950' : 'text-emerald-700 hover:text-emerald-400'
             }`}
           >
@@ -116,7 +116,7 @@ const Feed = ({ user }) => {
           
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`flex-1 flex items-center justify-center space-x-2 relative z-10 py-2.5 text-xs font-bold font-mono rounded-lg transition-colors duration-300 ${
+            className={`flex-1 flex items-center justify-center space-x-2 relative z-10 py-2.5 text-xs font-bold font-mono rounded-lg transition-colors duration-300 cursor-pointer ${
               activeTab === 'leaderboard' ? 'text-slate-950' : 'text-emerald-700 hover:text-emerald-400'
             }`}
           >
@@ -126,45 +126,69 @@ const Feed = ({ user }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto pr-3 space-y-3 custom-scrollbar">
         {activeTab === 'log' && (
           sessions.length === 0 ? (
             <div className="text-emerald-700 font-mono text-sm text-center mt-10">No focus sessions logged yet.</div>
           ) : (
             sessions.map((s) => (
-              <div key={s.id} className="group flex justify-between items-center bg-emerald-950/10 border border-emerald-900/30 hover:border-emerald-500/30 p-4 rounded-xl transition-all">
-                <div>
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-emerald-400 font-mono text-sm uppercase">_{s.task}</span>
-                    {s.synced && <span className="w-2 h-2 rounded-full bg-amber-500" title="Synced to GitHub"></span>}
+              <div key={s.id} className="group flex justify-between items-center bg-[#090a0f]/80 border border-emerald-900/20 hover:border-emerald-500/30 p-4 rounded-xl transition-all duration-300">
+                
+                {/* Redesigned Left Side - Metadata Grouping */}
+                <div className="flex flex-col space-y-1.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">
+                      {s.task}
+                    </span>
+                    {s.synced && (
+                      <span className="text-slate-600 font-mono text-[10px] tracking-widest lowercase">
+                        (synced)
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-emerald-700">
-                    {s.timestamp ? new Date(s.timestamp.toDate()).toLocaleDateString() : 'Just now'} • {s.xp} XP
+                  <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-700/80 uppercase tracking-widest">
+                    <span>{s.timestamp ? new Date(s.timestamp.toDate()).toLocaleDateString() : 'Just now'}</span>
+                    <span className="text-emerald-900/50">•</span>
+                    <span className="text-emerald-500/80">{s.xp} XP</span>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                {/* Redesigned Right Side - Actions & Duration */}
+                <div className="flex items-center space-x-3">
                   {editingId === s.id ? (
                     <div className="flex items-center space-x-2">
                       <input 
                         type="number"
                         value={editMinutes}
                         onChange={(e) => setEditMinutes(e.target.value)}
-                        className="w-16 bg-[#0f1117] text-white font-mono text-sm border border-emerald-500 rounded px-2 py-1 outline-none text-center"
-                        placeholder="Mins"
+                        className="w-16 bg-[#030712] text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded-md px-2 py-1 outline-none text-center focus:border-emerald-500 transition-colors"
+                        placeholder="Min"
                       />
-                      <button onClick={() => handleUpdate(s.id)} className="text-emerald-400 hover:text-emerald-300"><Save className="w-4 h-4" /></button>
-                      <button onClick={() => setEditingId(null)} className="text-emerald-700 hover:text-emerald-400"><X className="w-4 h-4" /></button>
+                      <button onClick={() => handleUpdate(s.id)} className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer">
+                        <Save className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setEditingId(null)} className="p-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer">
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   ) : (
                     <>
-                      <span className="text-emerald-100/90 font-bold font-mono">{formatTime(s.duration)}</span>
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-emerald-100/90 font-bold font-mono tracking-wider">{formatTime(s.duration)}</span>
+                      
+                      {/* Cleaner Hover Actions */}
+                      <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button 
                           onClick={() => { setEditingId(s.id); setEditMinutes(Math.floor(s.duration / 60)); }} 
-                          className="text-emerald-700 hover:text-emerald-400"
-                        ><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(s.id)} className="text-emerald-700 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                          className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(s.id)} 
+                          className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </>
                   )}
@@ -182,14 +206,14 @@ const Feed = ({ user }) => {
           ) : leaderboard.length === 0 ? (
             <div className="text-emerald-700 font-mono text-sm text-center mt-10">No users found.</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-4">
               {leaderboard.map((player, idx) => (
                 <div 
                   key={player.uid} 
                   className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                     player.uid === user.uid 
                       ? 'bg-emerald-500/10 border-emerald-500/30' 
-                      : 'bg-emerald-950/10 border-emerald-900/30'
+                      : 'bg-[#090a0f]/80 border-emerald-900/20'
                   }`}
                 >
                   <div className="flex items-center space-x-4">
@@ -211,7 +235,7 @@ const Feed = ({ user }) => {
                       {player.uid === user.uid && <span className="text-[10px] text-emerald-400 font-mono">YOU</span>}
                     </div>
                   </div>
-                  <span className="font-mono font-bold text-emerald-400">{player.totalXp} XP</span>
+                  <span className="font-mono font-bold text-emerald-400 tracking-wider">{player.totalXp} XP</span>
                 </div>
               ))}
             </div>
