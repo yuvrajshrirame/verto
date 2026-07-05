@@ -24,7 +24,7 @@ const SpotifyEngine = ({ token }) => {
   const [customInput, setCustomInput] = useState("");
   const [inputError, setInputError] = useState("");
 
-  // New Telemetry States (Volume & Progress)
+  // Telemetry States
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [position, setPosition] = useState(0);
@@ -70,7 +70,6 @@ const SpotifyEngine = ({ token }) => {
         setActive(true);
         setDuration(state.duration);
         
-        // Only override position if the user isn't currently scrubbing the progress bar
         if (!isDragging) {
             setPosition(state.position);
         }
@@ -82,7 +81,7 @@ const SpotifyEngine = ({ token }) => {
     return () => {
       if (player) player.disconnect();
     };
-  }, [token]); // Removed isDragging from dependency array to prevent constant re-renders
+  }, [token]); 
 
   // Real-time Progress Bar Ticker
   useEffect(() => {
@@ -94,7 +93,6 @@ const SpotifyEngine = ({ token }) => {
     }
     return () => clearInterval(interval);
   }, [isActive, isPaused, duration, isDragging]);
-
 
   // --- PLAYBACK CONTROLS ---
   const executePlayback = async (uri, isContextContext = true) => {
@@ -229,6 +227,10 @@ const SpotifyEngine = ({ token }) => {
     setCustomInput(""); 
   };
 
+  // Calculate Gradient Percentages
+  const progressPercent = duration ? (position / duration) * 100 : 0;
+  const volumePercent = isMuted ? 0 : volume * 100;
+
   if (!token) return null;
 
   return (
@@ -270,7 +272,7 @@ const SpotifyEngine = ({ token }) => {
             </div>
         </div>
 
-        {/* Telemetry: Progress Bar */}
+        {/* Telemetry: Progress Bar with Dynamic Gradient */}
         <div className="flex items-center gap-3 mb-5 text-[10px] font-mono text-emerald-700">
             <span className="w-8 text-right">{formatTime(position)}</span>
             <input 
@@ -282,7 +284,10 @@ const SpotifyEngine = ({ token }) => {
                 onMouseUp={handleSeekEnd}
                 onTouchEnd={handleSeekEnd}
                 disabled={!isActive}
-                className="flex-1 h-1 bg-emerald-900/40 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 disabled:opacity-50 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full" 
+                style={{ 
+                    background: `linear-gradient(to right, #34d399 ${progressPercent}%, rgba(6, 78, 59, 0.4) ${progressPercent}%)` 
+                }}
+                className="flex-1 h-1 rounded-lg appearance-none cursor-pointer disabled:opacity-50 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
             />
             <span className="w-8">{formatTime(duration)}</span>
         </div>
@@ -290,7 +295,7 @@ const SpotifyEngine = ({ token }) => {
         {/* Master Controls & Volume Layer */}
         <div className="flex items-center justify-between mb-6">
             
-            {/* Volume Control */}
+            {/* Volume Control with Dynamic Gradient */}
             <div className="flex items-center gap-2 w-28 group">
                 <button 
                     onClick={toggleMute} 
@@ -307,7 +312,10 @@ const SpotifyEngine = ({ token }) => {
                     value={isMuted ? 0 : volume} 
                     onChange={handleVolumeChange} 
                     disabled={!isReady}
-                    className="w-full h-1 bg-emerald-900/40 rounded-lg appearance-none cursor-pointer accent-emerald-500 opacity-50 group-hover:opacity-100 disabled:opacity-30 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full" 
+                    style={{ 
+                        background: `linear-gradient(to right, #34d399 ${volumePercent}%, rgba(6, 78, 59, 0.4) ${volumePercent}%)` 
+                    }}
+                    className="w-full h-1 rounded-lg appearance-none cursor-pointer opacity-50 group-hover:opacity-100 disabled:opacity-30 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
                 />
             </div>
 
@@ -338,7 +346,6 @@ const SpotifyEngine = ({ token }) => {
                 </button>
             </div>
 
-            {/* Empty Spacer to balance the flex container perfectly */}
             <div className="w-28"></div>
         </div>
 
