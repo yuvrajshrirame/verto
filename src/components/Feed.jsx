@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Trash2, Edit2, Save, X, Trophy, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const ITEMS_PER_PAGE = 4;
 
 const Feed = ({ user }) => {
   const [activeTab, setActiveTab] = useState('log');
@@ -15,6 +13,32 @@ const Feed = ({ user }) => {
 
   const [logPage, setLogPage] = useState(1);
   const [boardPage, setBoardPage] = useState(1);
+  
+  // Dynamic Pagination State
+  const [itemsPerPage, setItemsPerPage] = useState(4);
+  const listContainerRef = useRef(null);
+
+  // Dynamic Height Calculation
+  useEffect(() => {
+    const calculateItemsPerPage = () => {
+      if (listContainerRef.current) {
+        const availableHeight = listContainerRef.current.clientHeight;
+        // 80px represents the approximate height of one row (padding + text + gap)
+        const itemHeight = 80; 
+        const maxItems = Math.floor(availableHeight / itemHeight);
+        
+        // Ensure at least 1 item is shown, otherwise set to max fitting items
+        setItemsPerPage(Math.max(1, maxItems));
+      }
+    };
+
+    // Calculate on mount and slightly delay to allow flexbox to render heights
+    setTimeout(calculateItemsPerPage, 50);
+
+    // Recalculate if the user resizes their browser window
+    window.addEventListener('resize', calculateItemsPerPage);
+    return () => window.removeEventListener('resize', calculateItemsPerPage);
+  }, [activeTab]); // Recalculate when tabs change
 
   useEffect(() => {
     if (!user) return;
@@ -76,11 +100,11 @@ const Feed = ({ user }) => {
     setEditingId(null);
   };
 
-  const totalLogPages = Math.ceil(sessions.length / ITEMS_PER_PAGE);
-  const paginatedSessions = sessions.slice((logPage - 1) * ITEMS_PER_PAGE, logPage * ITEMS_PER_PAGE);
+  const totalLogPages = Math.ceil(sessions.length / itemsPerPage);
+  const paginatedSessions = sessions.slice((logPage - 1) * itemsPerPage, logPage * itemsPerPage);
 
-  const totalBoardPages = Math.ceil(leaderboard.length / ITEMS_PER_PAGE);
-  const paginatedLeaderboard = leaderboard.slice((boardPage - 1) * ITEMS_PER_PAGE, boardPage * ITEMS_PER_PAGE);
+  const totalBoardPages = Math.ceil(leaderboard.length / itemsPerPage);
+  const paginatedLeaderboard = leaderboard.slice((boardPage - 1) * itemsPerPage, boardPage * itemsPerPage);
 
   return (
     <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-5 shadow-2xl relative flex flex-col h-[500px] md:h-full">
@@ -100,7 +124,8 @@ const Feed = ({ user }) => {
       </div>
 
       <div className="flex-1 flex flex-col justify-between overflow-hidden">
-        <div className="space-y-2.5">
+        {/* Added ref here and set flex-1 so it captures the dynamic height available */}
+        <div ref={listContainerRef} className="space-y-2.5 flex-1 overflow-hidden">
           {activeTab === 'log' && (
             sessions.length === 0 ? (
               <div className="text-emerald-700 font-mono text-sm text-center mt-10">No focus sessions logged yet.</div>
@@ -148,8 +173,7 @@ const Feed = ({ user }) => {
               <div className="text-emerald-700 font-mono text-sm text-center mt-10">No users found.</div>
             ) : (
               paginatedLeaderboard.map((player, idx) => {
-                const globalRank = (boardPage - 1) * ITEMS_PER_PAGE + idx + 1;
-                // Determine if this leaderboard row belongs to the currently logged-in user
+                const globalRank = (boardPage - 1) * itemsPerPage + idx + 1;
                 const isCurrentUser = player.uid === user.uid;
                 
                 return (
@@ -157,7 +181,6 @@ const Feed = ({ user }) => {
                     <div className="flex items-center space-x-4">
                       <span className={`font-mono font-bold w-5 text-center text-base ${globalRank === 1 ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]' : globalRank === 2 ? 'text-slate-300' : globalRank === 3 ? 'text-amber-700' : 'text-emerald-700 text-xs'}`}>#{globalRank}</span>
                       
-                      {/* Use live user.photoURL if it's the current user, otherwise use DB photo */}
                       <img src={isCurrentUser ? user.photoURL : player.photo} alt={player.name} className={`w-8 h-8 rounded-full border object-cover ${isCurrentUser ? 'border-emerald-500' : 'border-emerald-900/50'}`} />
                       
                       <div className="flex flex-col">
