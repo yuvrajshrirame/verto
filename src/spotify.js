@@ -11,7 +11,6 @@ const scopes = [
   "user-read-playback-state",
 ];
 
-// PKCE Cryptography Utilities
 const generateRandomString = (length) => {
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const values = crypto.getRandomValues(new Uint8Array(length));
@@ -31,10 +30,8 @@ const base64encode = (input) => {
     .replace(/\//g, '_');
 };
 
-// 1. Initiates the login by sending the user to Spotify with a code challenge
 export const redirectToSpotifyAuth = async () => {
   const codeVerifier = generateRandomString(64);
-  // Store the verifier locally to prove who we are when we get back
   window.localStorage.setItem('spotify_code_verifier', codeVerifier);
   
   const hashed = await sha256(codeVerifier);
@@ -52,7 +49,6 @@ export const redirectToSpotifyAuth = async () => {
   window.location.href = `${authEndpoint}?${params.toString()}`;
 };
 
-// 2. Swaps the authorization code for an actual access token
 export const getTokenFromCode = async (code) => {
   const codeVerifier = localStorage.getItem('spotify_code_verifier');
 
@@ -76,6 +72,11 @@ export const getTokenFromCode = async (code) => {
 
     if (data.access_token) {
        localStorage.setItem('spotify_token', data.access_token);
+       
+       // Calculate exact expiration time (current time + expires_in seconds)
+       const expiresAt = Date.now() + (data.expires_in * 1000);
+       localStorage.setItem('spotify_token_expires_at', expiresAt.toString());
+       
        return data.access_token;
     }
     return null;
