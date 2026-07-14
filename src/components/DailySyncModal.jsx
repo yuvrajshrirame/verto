@@ -79,7 +79,9 @@ const DailySyncModal = ({ user, onClose }) => {
     const now = new Date();
     const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const path = `logs/${dateString}.md`; 
-    
+    console.log("Token:", token);
+console.log("Username:", githubUsername);
+console.log("Repo:", repoName);
     try {
       const getFileRes = await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         headers: { Authorization: `Bearer ${token}` }

@@ -67,7 +67,13 @@ function App() {
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      if (result.user) localStorage.setItem("github_token", result.user.accessToken);
+      
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const githubToken = credential?.accessToken;
+      
+      if (githubToken) {
+        localStorage.setItem("github_token", githubToken);
+      }
     } catch (error) { 
       console.error("Login Error:", error); 
     }
