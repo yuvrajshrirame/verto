@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase'; 
-import { Play, Pause, Save, Zap, Plus, Settings, AlertTriangle } from 'lucide-react';
+import { Play, Pause, Save, Zap, Plus, Settings, AlertTriangle, RotateCcw } from 'lucide-react'; // Added RotateCcw
 import ManageCategoriesModal from './ManageCategoriesModal';
 
 const Timer = ({ user }) => {
@@ -91,6 +91,18 @@ const Timer = ({ user }) => {
       setNewCategoryName('');
     } catch (error) {
       console.error("Failed to add category:", error);
+    }
+  };
+
+  // Safe Reset Protocol
+  const handleReset = () => {
+    if (seconds === 0) return;
+    
+    const confirmReset = window.confirm("ABORT FOCUS SESSION? All accumulated time for this node will be purged.");
+    if (confirmReset) {
+      setIsActive(false);
+      setSeconds(0);
+      setIsCapped(false);
     }
   };
 
@@ -192,11 +204,12 @@ const Timer = ({ user }) => {
           </div>
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex items-center space-x-4">
+          {/* Action Trigger Block */}
           <button 
             onClick={() => setIsActive(!isActive)}
             disabled={isSaving || categories.length === 0 || isCapped}
-            className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-xl font-bold transition-all ${
+            className={`flex-[3] flex items-center justify-center space-x-2 py-4 rounded-xl font-bold transition-all ${
               isActive 
                 ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' 
                 : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
@@ -206,10 +219,21 @@ const Timer = ({ user }) => {
             <span>{isActive ? 'PAUSE' : (seconds > 0 ? 'RESUME' : 'INITIALIZE')}</span>
           </button>
           
+          {/* Reset Terminal Node */}
+          <button
+            onClick={handleReset}
+            disabled={seconds === 0 || isSaving}
+            className="flex-1 flex items-center justify-center py-4 rounded-xl border border-red-900/30 text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+            title="Reset Node"
+          >
+            <RotateCcw className={`w-5 h-5 ${isActive ? 'animate-spin [animation-duration:8s]' : ''}`} />
+          </button>
+
+          {/* Persistent Sync Block */}
           <button 
             onClick={finishSession}
             disabled={seconds === 0 || isSaving}
-            className="flex-1 flex items-center justify-center space-x-2 bg-emerald-500 text-slate-950 border border-emerald-400 py-4 rounded-xl font-bold hover:bg-emerald-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+            className="flex-[3] flex items-center justify-center space-x-2 bg-emerald-500 text-slate-950 border border-emerald-400 py-4 rounded-xl font-bold hover:bg-emerald-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(16,185,129,0.3)]"
           >
             <Save className="w-5 h-5" />
             <span>{isSaving ? 'SYNCING...' : 'LOG SESSION'}</span>
