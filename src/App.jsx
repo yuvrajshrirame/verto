@@ -4,13 +4,13 @@ import { auth, provider } from "./firebase";
 import Landing from "./components/Landing";
 import Timer from "./components/Timer";
 import Feed from "./components/Feed";   
-import PlayerStats from "./components/PlayerStats";
 import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
 import GuildDashboard from "./components/GuildDashboard";
-import { DatabaseBackup, LogOut, X, Zap, Disc, Users, Shield, BarChart2 } from "lucide-react"; 
+import AnalyticsDashboard from "./components/AnalyticsDashboard"; // NEW IMPORT
+import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
@@ -27,7 +27,7 @@ function App() {
   const [authError, setAuthError] = useState(null);
 
   // --- WORKSPACE NAVIGATION ---
-  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'audio', 'guilds', 'profile', 'analytics'
+  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'guilds', 'audio', 'analytics'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -94,12 +94,11 @@ function App() {
   if (loading) return <div className="min-h-screen bg-[#030712]" />;
   if (!user) return <Landing onLogin={handleLogin} />;
 
-  // Workspace Navigation Items
+  // Workspace Navigation Items (Consolidated Profile & Analytics)
   const navItems = [
     { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
     { id: 'guilds', icon: Users, label: 'GUILDS' },
     { id: 'audio', icon: Disc, label: 'AUDIO ENGINE' },
-    { id: 'profile', icon: Shield, label: 'PLAYER PROFILE' },
     { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
   ];
 
@@ -198,21 +197,7 @@ function App() {
                 </div>
               )}
 
-              {currentView === 'profile' && (
-                <div className="h-full flex flex-col items-center pt-10">
-                  <div className="w-full max-w-xl">
-                    <PlayerStats uid={user.uid} />
-                  </div>
-                </div>
-              )}
-
-              {currentView === 'analytics' && (
-                <div className="h-full flex flex-col items-center justify-center text-emerald-700 border-2 border-dashed border-emerald-900/30 rounded-2xl p-10">
-                  <BarChart2 className="w-16 h-16 mb-4 opacity-50" />
-                  <h2 className="text-xl font-mono uppercase tracking-widest text-emerald-500 mb-2">Analytics Core Offline</h2>
-                  <p className="text-xs font-mono max-w-md text-center opacity-80">Awaiting deployment of Recharts module. Diagnostic data visualization will be injected here.</p>
-                </div>
-              )}
+              {currentView === 'analytics' && <AnalyticsDashboard user={user} />}
 
             </div>
           </div>
@@ -222,7 +207,7 @@ function App() {
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
-        {/* Restored Sign Out Modal */}
+        {/* Sign Out Modal */}
         {isSignOutModalOpen && (
           <div 
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
