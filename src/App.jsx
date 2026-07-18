@@ -10,7 +10,7 @@ import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
 import GuildDashboard from "./components/GuildDashboard";
-import { DatabaseBackup, LogOut, X, ChevronDown, Settings2 } from "lucide-react"; 
+import { DatabaseBackup, LogOut, X, Zap, Disc, Users, Shield, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
@@ -23,13 +23,11 @@ function App() {
   
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyExpired, setSpotifyExpired] = useState(false);
-  const [isSpotifyMenuOpen, setIsSpotifyMenuOpen] = useState(false); 
 
-  // Global Auth Error State
   const [authError, setAuthError] = useState(null);
 
-  // Guilds Navigation State
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' or 'guilds'
+  // --- WORKSPACE NAVIGATION ---
+  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'audio', 'guilds', 'profile', 'analytics'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -46,7 +44,6 @@ function App() {
 
       if (code) {
         window.history.replaceState({}, document.title, "/"); 
-        
         const token = await getTokenFromCode(code);
         if (token) {
           setSpotifyToken(token);
@@ -55,7 +52,6 @@ function App() {
       } else {
         const savedToken = localStorage.getItem("spotify_token");
         const expiresAt = localStorage.getItem("spotify_token_expires_at");
-        
         if (savedToken && expiresAt) {
           if (Date.now() > parseInt(expiresAt)) {
             localStorage.removeItem("spotify_token");
@@ -67,37 +63,24 @@ function App() {
         }
       }
     };
-    
     checkSpotifyAuth();
   }, []);
 
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      
       const credential = GithubAuthProvider.credentialFromResult(result);
-      const githubToken = credential?.accessToken;
-      
-      if (githubToken) {
-        localStorage.setItem("github_token", githubToken);
+      if (credential?.accessToken) {
+        localStorage.setItem("github_token", credential.accessToken);
       }
     } catch (error) { 
       console.error("Login Error:", error); 
     }
   };
 
-  const unlinkSpotify = () => {
-    localStorage.removeItem("spotify_token");
-    localStorage.removeItem("spotify_token_expires_at");
-    setSpotifyToken(null);
-    setSpotifyExpired(false);
-    setIsSpotifyMenuOpen(false); 
-  };
-
   const executeSignOut = async () => {
     await signOut(auth);
     localStorage.removeItem("github_token"); 
-    // Spotify tokens are intentionally NOT removed here to persist audio linkage
     setIsSignOutModalOpen(false);
   };
 
@@ -108,172 +91,145 @@ function App() {
     localStorage.removeItem("github_token");
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
-  
-  if (!user) {
-    return (
-      <>
-        <Landing onLogin={handleLogin} />
-        {authError && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in px-4">
-            <div className="bg-[#0f1117] border border-red-500/50 p-8 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.2)] w-full max-w-sm text-center">
-              <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/30 mb-4 animate-pulse">
-                <span className="text-red-500 font-bold text-xl">!</span>
-              </div>
-              <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">Session Terminated</h2>
-              <p className="text-red-400/80 text-xs font-mono mb-8">{authError}</p>
-              <button 
-                onClick={() => setAuthError(null)} 
-                className="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 font-mono font-bold text-xs tracking-wider hover:bg-red-500/20 transition-all cursor-pointer"
-              >
-                ACKNOWLEDGE & RE-AUTHENTICATE
-              </button>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
+  if (loading) return <div className="min-h-screen bg-[#030712]" />;
+  if (!user) return <Landing onLogin={handleLogin} />;
+
+  // Workspace Navigation Items
+  const navItems = [
+    { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
+    { id: 'guilds', icon: Users, label: 'GUILDS' },
+    { id: 'audio', icon: Disc, label: 'AUDIO ENGINE' },
+    { id: 'profile', icon: Shield, label: 'PLAYER PROFILE' },
+    { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
+  ];
 
   return (
     <>
       <AnimatedBackground />
       
-      <div className="min-h-screen relative p-6 selection:bg-emerald-500/30 z-10 overflow-x-hidden md:overflow-auto">
+      <div className="flex h-screen overflow-hidden selection:bg-emerald-500/30 z-10 relative">
         
-        <header className="flex justify-between items-center mb-6 max-w-5xl mx-auto border-b border-emerald-900/30 pb-4 shrink-0">
-          <h1 className="text-2xl font-bold text-white tracking-wider">
-            VERTO<span className="text-emerald-500">.</span>
-          </h1>
-          
-          <div className="flex items-center space-x-6">
-
-            {/* Nav Links Block */}
-            <div className="flex items-center space-x-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-1 mr-4 hidden sm:flex">
-              <button 
-                onClick={() => setCurrentView('dashboard')}
-                className={`px-3 py-1.5 rounded-md font-mono text-xs font-bold transition-all ${currentView === 'dashboard' ? 'bg-emerald-500/20 text-emerald-400' : 'text-emerald-700 hover:text-emerald-400'}`}
-              >
-                TERMINAL
-              </button>
-              <button 
-                onClick={() => setCurrentView('guilds')}
-                className={`px-3 py-1.5 rounded-md font-mono text-xs font-bold transition-all ${currentView === 'guilds' ? 'bg-emerald-500/20 text-emerald-400' : 'text-emerald-700 hover:text-emerald-400'}`}
-              >
-                GUILDS
-              </button>
+        {/* === SIDEBAR NAVIGATION === */}
+        <aside className="w-16 md:w-64 bg-[#030712]/80 backdrop-blur-xl border-r border-emerald-900/30 flex flex-col justify-between shrink-0 transition-all duration-300">
+          <div>
+            {/* Logo */}
+            <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-emerald-900/30">
+              <h1 className="text-xl md:text-2xl font-bold text-white tracking-wider hidden md:block">
+                VERTO<span className="text-emerald-500">.</span>
+              </h1>
+              <h1 className="text-xl font-bold text-white md:hidden">V<span className="text-emerald-500">.</span></h1>
             </div>
-            
-            {!spotifyToken ? (
-              <button 
-                onClick={redirectToSpotifyAuth}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition-all cursor-pointer ${
-                  spotifyExpired 
-                    ? "text-amber-400 border border-amber-500/50 bg-amber-500/10 shadow-[0_0_10px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]"
-                    : "text-green-400 border border-green-500/50 bg-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
-                }`}
-              >
-                <span>{spotifyExpired ? "LINK EXPIRED - RE-AUTH" : "INIT SPOTIFY"}</span>
+
+            {/* Nav Links */}
+            <nav className="p-3 md:p-4 flex flex-col gap-2 mt-4 w-full">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentView(item.id)}
+                  className={`flex items-center justify-center md:justify-start gap-4 p-3 rounded-xl transition-all duration-300 cursor-pointer w-full text-left overflow-hidden ${
+                    currentView === item.id 
+                      ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+                      : 'border border-transparent text-emerald-700 hover:text-emerald-400 hover:bg-emerald-950/30'
+                  }`}
+                  title={item.label}
+                >
+                  <item.icon className={`w-5 h-5 shrink-0 ${currentView === item.id ? 'animate-pulse' : ''}`} />
+                  <span className="hidden md:block font-mono text-xs font-bold tracking-widest whitespace-nowrap truncate">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* User Profile Footer */}
+          <div className="p-4 border-t border-emerald-900/30">
+             <div className="flex flex-col md:flex-row items-center md:space-x-3 p-2">
+                <img 
+                  onClick={() => setIsProfileModalOpen(true)} 
+                  src={user.photoURL} 
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border border-emerald-900/50 cursor-pointer hover:border-emerald-400 transition-colors shrink-0" 
+                />
+                <div className="hidden md:flex flex-col flex-1 truncate">
+                  <span className="text-white text-xs font-medium truncate">{user.displayName?.split(" ")[0] || "Hacker"}</span>
+                  <button onClick={() => setIsSignOutModalOpen(true)} className="text-emerald-700 hover:text-emerald-400 text-[9px] font-mono uppercase tracking-widest text-left mt-0.5 cursor-pointer">
+                    Sign Out
+                  </button>
+                </div>
+             </div>
+          </div>
+        </aside>
+
+        {/* === MAIN CONTENT WORKSPACE === */}
+        <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+          
+          {/* Top Utility Bar (Sync & Spotify Connect) */}
+          <header className="h-16 shrink-0 border-b border-emerald-900/30 flex items-center justify-end px-6 space-x-4 bg-[#030712]/50 backdrop-blur-sm">
+            {!spotifyToken && (
+              <button onClick={redirectToSpotifyAuth} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
+                <span>{spotifyExpired ? "AUDIO EXPIRED" : "INIT AUDIO"}</span>
               </button>
-            ) : (
-              <div className="relative">
-                <button 
-                  onClick={() => setIsSpotifyMenuOpen(!isSpotifyMenuOpen)}
-                  className="flex items-center space-x-2 text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-pointer transition-all hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                >
-                  <span>AUDIO LINKED</span>
-                  <ChevronDown className={`w-3 h-3 transition-transform ${isSpotifyMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isSpotifyMenuOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setIsSpotifyMenuOpen(false)} 
-                    />
-                    
-                    <div className="absolute right-0 mt-2 w-48 bg-[#0f1117]/95 backdrop-blur-md border border-emerald-900/50 rounded-lg shadow-[0_0_20px_rgba(16,185,129,0.15)] z-50 p-2 flex flex-col gap-1">
-                      <div className="px-2 py-1.5 mb-1 border-b border-emerald-900/30 flex items-center space-x-2">
-                        <Settings2 className="w-3 h-3 text-emerald-700" />
-                        <span className="text-[10px] text-emerald-700 font-mono tracking-widest uppercase">Engine Settings</span>
-                      </div>
-                      
-                      <button
-                        onClick={unlinkSpotify}
-                        className="w-full text-left px-2 py-2 rounded text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-colors font-mono text-xs font-bold flex items-center justify-between group cursor-pointer"
-                      >
-                        <span>UNLINK ENGINE</span>
-                        <X className="w-3 h-3 opacity-50 group-hover:opacity-100" />
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
             )}
-
-            <button 
-              onClick={() => setIsSyncModalOpen(true)} 
-              className="flex items-center space-x-2 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 bg-emerald-500/20 px-3 py-1.5 rounded-lg font-mono text-xs font-bold cursor-pointer transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-            >
-              <DatabaseBackup className="w-4 h-4 hidden sm:block" />
-              <span>DAILY SYNC</span>
+            <button onClick={() => setIsSyncModalOpen(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
+              <DatabaseBackup className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">DAILY SYNC</span>
             </button>
-            
-            <div className="flex items-center space-x-4 border-l border-emerald-900/30 pl-4 sm:pl-6">
-              <div className="text-right hidden sm:block">
-                <p className="text-white text-sm font-medium">
-                  {user.displayName ? user.displayName.split(" ")[0] : "Hacker"}
-                </p>
-                <button 
-                  onClick={() => setIsSignOutModalOpen(true)} 
-                  className="text-emerald-700 hover:text-emerald-400 transition-colors text-[10px] font-mono uppercase tracking-widest mt-1 cursor-pointer"
-                >
-                  Sign Out
-                </button>
-              </div>
-              <img 
-                onClick={() => setIsProfileModalOpen(true)} 
-                src={user.photoURL} 
-                alt="Profile"
-                className="w-9 h-9 rounded-full border border-emerald-900/50 cursor-pointer object-cover hover:border-emerald-400 transition-colors" 
-              />
+          </header>
+
+          {/* Dynamic View Injection */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
+            <div className="max-w-6xl mx-auto h-full animate-fade-in">
+              
+              {currentView === 'focus' && (
+                <div className="flex flex-col xl:flex-row gap-6 h-full">
+                  <div className="flex-[1.5] min-h-[500px]">
+                    <Timer user={user} />
+                  </div>
+                  <div className="flex-1 xl:max-w-md h-[500px] xl:h-full">
+                    <Feed user={user} />
+                  </div>
+                </div>
+              )}
+
+              {currentView === 'guilds' && <GuildDashboard user={user} />}
+              
+              {currentView === 'audio' && (
+                <div className="h-full flex items-center justify-center text-emerald-700 font-mono">
+                  {spotifyToken ? <SpotifyEngine token={spotifyToken} /> : "INITIALIZE SPOTIFY ABOVE TO ACCESS AUDIO ENGINE."}
+                </div>
+              )}
+
+              {currentView === 'profile' && (
+                <div className="h-full flex flex-col items-center pt-10">
+                  <div className="w-full max-w-xl">
+                    <PlayerStats uid={user.uid} />
+                  </div>
+                </div>
+              )}
+
+              {currentView === 'analytics' && (
+                <div className="h-full flex flex-col items-center justify-center text-emerald-700 border-2 border-dashed border-emerald-900/30 rounded-2xl p-10">
+                  <BarChart2 className="w-16 h-16 mb-4 opacity-50" />
+                  <h2 className="text-xl font-mono uppercase tracking-widest text-emerald-500 mb-2">Analytics Core Offline</h2>
+                  <p className="text-xs font-mono max-w-md text-center opacity-80">Awaiting deployment of Recharts module. Diagnostic data visualization will be injected here.</p>
+                </div>
+              )}
+
             </div>
           </div>
-        </header>
-
-        <main className="max-w-5xl mx-auto md:min-h-[calc(100vh-120px)] pb-10">
-          
-          {currentView === 'dashboard' ? (
-            <div className="flex flex-col md:flex-row gap-5 h-full">
-              <div className="flex-1 w-full flex flex-col gap-5">
-                <PlayerStats uid={user.uid} />
-                <div className="flex-1 min-h-[400px] [&>div]:h-full">
-                  <Timer user={user} />
-                </div>
-                {spotifyToken && (
-                  <SpotifyEngine token={spotifyToken} />
-                )}
-              </div>
-              <div className="flex-1 w-full">
-                <Feed user={user} />
-              </div>
-            </div>
-          ) : (
-            <GuildDashboard user={user} />
-          )}
-          
         </main>
 
+        {/* === MODALS === */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
+        {/* Restored Sign Out Modal */}
         {isSignOutModalOpen && (
           <div 
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
             onClick={() => setIsSignOutModalOpen(false)}
           >
             <div 
-              className="bg-[#0f1117] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
+              className="bg-[#030712] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
               onClick={(e) => e.stopPropagation()}
             >
               <button 
@@ -314,6 +270,7 @@ function App() {
             </div>
           </div>
         )}
+
       </div>
     </>
   );
