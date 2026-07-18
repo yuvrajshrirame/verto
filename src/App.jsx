@@ -9,7 +9,8 @@ import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
-import { DatabaseBackup, LogOut, X, ChevronDown, Settings2 } from "lucide-react"; // Added ChevronDown and Settings2
+import GuildDashboard from "./components/GuildDashboard";
+import { DatabaseBackup, LogOut, X, ChevronDown, Settings2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
@@ -22,7 +23,13 @@ function App() {
   
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyExpired, setSpotifyExpired] = useState(false);
-  const [isSpotifyMenuOpen, setIsSpotifyMenuOpen] = useState(false); // New Dropdown State
+  const [isSpotifyMenuOpen, setIsSpotifyMenuOpen] = useState(false); 
+
+  // Global Auth Error State
+  const [authError, setAuthError] = useState(null);
+
+  // Guilds Navigation State
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' or 'guilds'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -84,22 +91,49 @@ function App() {
     localStorage.removeItem("spotify_token_expires_at");
     setSpotifyToken(null);
     setSpotifyExpired(false);
-    setIsSpotifyMenuOpen(false); // Close menu on unlink
+    setIsSpotifyMenuOpen(false); 
   };
 
   const executeSignOut = async () => {
     await signOut(auth);
     localStorage.removeItem("github_token"); 
-    localStorage.removeItem("spotify_token"); 
-    localStorage.removeItem("spotify_token_expires_at");
-    
-    setSpotifyToken(null); 
-    setSpotifyExpired(false);
+    // Spotify tokens are intentionally NOT removed here to persist audio linkage
     setIsSignOutModalOpen(false);
   };
 
+  const triggerAuthError = async (message) => {
+    setAuthError(message);
+    setIsSyncModalOpen(false);
+    await signOut(auth);
+    localStorage.removeItem("github_token");
+  };
+
   if (loading) return <div className="min-h-screen bg-[#0f1117]" />;
-  if (!user) return <Landing onLogin={handleLogin} />;
+  
+  if (!user) {
+    return (
+      <>
+        <Landing onLogin={handleLogin} />
+        {authError && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in px-4">
+            <div className="bg-[#0f1117] border border-red-500/50 p-8 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.2)] w-full max-w-sm text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/30 mb-4 animate-pulse">
+                <span className="text-red-500 font-bold text-xl">!</span>
+              </div>
+              <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">Session Terminated</h2>
+              <p className="text-red-400/80 text-xs font-mono mb-8">{authError}</p>
+              <button 
+                onClick={() => setAuthError(null)} 
+                className="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 font-mono font-bold text-xs tracking-wider hover:bg-red-500/20 transition-all cursor-pointer"
+              >
+                ACKNOWLEDGE & RE-AUTHENTICATE
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -113,6 +147,22 @@ function App() {
           </h1>
           
           <div className="flex items-center space-x-6">
+
+            {/* Nav Links Block */}
+            <div className="flex items-center space-x-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-1 mr-4 hidden sm:flex">
+              <button 
+                onClick={() => setCurrentView('dashboard')}
+                className={`px-3 py-1.5 rounded-md font-mono text-xs font-bold transition-all ${currentView === 'dashboard' ? 'bg-emerald-500/20 text-emerald-400' : 'text-emerald-700 hover:text-emerald-400'}`}
+              >
+                TERMINAL
+              </button>
+              <button 
+                onClick={() => setCurrentView('guilds')}
+                className={`px-3 py-1.5 rounded-md font-mono text-xs font-bold transition-all ${currentView === 'guilds' ? 'bg-emerald-500/20 text-emerald-400' : 'text-emerald-700 hover:text-emerald-400'}`}
+              >
+                GUILDS
+              </button>
+            </div>
             
             {!spotifyToken ? (
               <button 
@@ -126,7 +176,6 @@ function App() {
                 <span>{spotifyExpired ? "LINK EXPIRED - RE-AUTH" : "INIT SPOTIFY"}</span>
               </button>
             ) : (
-              // New Dropdown Wrapper
               <div className="relative">
                 <button 
                   onClick={() => setIsSpotifyMenuOpen(!isSpotifyMenuOpen)}
@@ -136,10 +185,8 @@ function App() {
                   <ChevronDown className={`w-3 h-3 transition-transform ${isSpotifyMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu */}
                 {isSpotifyMenuOpen && (
                   <>
-                    {/* Invisible overlay to catch outside clicks */}
                     <div 
                       className="fixed inset-0 z-40" 
                       onClick={() => setIsSpotifyMenuOpen(false)} 
@@ -150,8 +197,6 @@ function App() {
                         <Settings2 className="w-3 h-3 text-emerald-700" />
                         <span className="text-[10px] text-emerald-700 font-mono tracking-widest uppercase">Engine Settings</span>
                       </div>
-                      
-                      {/* Future settings can go here */}
                       
                       <button
                         onClick={unlinkSpotify}
@@ -196,27 +241,30 @@ function App() {
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto flex flex-col md:flex-row gap-5 md:min-h-[calc(100vh-120px)] pb-10">
+        <main className="max-w-5xl mx-auto md:min-h-[calc(100vh-120px)] pb-10">
           
-          <div className="flex-1 w-full flex flex-col gap-5">
-            <PlayerStats uid={user.uid} />
-            
-            <div className="flex-1 min-h-[400px] [&>div]:h-full">
-              <Timer user={user} />
+          {currentView === 'dashboard' ? (
+            <div className="flex flex-col md:flex-row gap-5 h-full">
+              <div className="flex-1 w-full flex flex-col gap-5">
+                <PlayerStats uid={user.uid} />
+                <div className="flex-1 min-h-[400px] [&>div]:h-full">
+                  <Timer user={user} />
+                </div>
+                {spotifyToken && (
+                  <SpotifyEngine token={spotifyToken} />
+                )}
+              </div>
+              <div className="flex-1 w-full">
+                <Feed user={user} />
+              </div>
             </div>
-
-            {spotifyToken && (
-              <SpotifyEngine token={spotifyToken} />
-            )}
-          </div>
-
-          <div className="flex-1 w-full">
-            <Feed user={user} />
-          </div>
+          ) : (
+            <GuildDashboard user={user} />
+          )}
           
         </main>
 
-        {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} />}
+        {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
         {isSignOutModalOpen && (

@@ -10,7 +10,7 @@ const GithubIcon = ({ className }) => (
   </svg>
 );
 
-const DailySyncModal = ({ user, onClose }) => {
+const DailySyncModal = ({ user, onClose, onAuthError }) => {
   const [sessions, setSessions] = useState([]);
   const [unsyncedDocs, setUnsyncedDocs] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -68,7 +68,7 @@ const DailySyncModal = ({ user, onClose }) => {
 
     const token = localStorage.getItem("github_token");
     if (!token) {
-      alert("GitHub token missing. Please log in again.");
+      onAuthError("GitHub token missing. Please log in again.");
       setIsSyncing(false);
       return;
     }
@@ -79,13 +79,17 @@ const DailySyncModal = ({ user, onClose }) => {
     const now = new Date();
     const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const path = `logs/${dateString}.md`; 
-    console.log("Token:", token);
-console.log("Username:", githubUsername);
-console.log("Repo:", repoName);
+    
     try {
       const getFileRes = await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Trigger the auth error intercept on 401
+      if (getFileRes.status === 401) {
+        onAuthError("GitHub connection expired or revoked. Please log in again to restore sync access.");
+        return;
+      }
       
       const fileData = await getFileRes.json();
       const sha = fileData.sha ? fileData.sha : undefined;
@@ -99,7 +103,7 @@ console.log("Repo:", repoName);
       const logEntry = `### Daily Sync: ${now.toDateString()}\n**Total Focus: ${formatTime(totalSeconds)}**\n\n${breakdown}`;
       const newContentBase64 = btoa(logEntry);
 
-      await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
+      const putRes = await fetch(`https://api.github.com/repos/${githubUsername}/${repoName}/contents/${path}`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,6 +115,12 @@ console.log("Repo:", repoName);
           sha: sha 
         })
       });
+
+      // Trigger the auth error intercept if token expires mid-request
+      if (putRes.status === 401) {
+         onAuthError("GitHub connection expired mid-sync. Please log in again.");
+         return;
+      }
 
       const batch = writeBatch(db);
       unsyncedDocs.forEach(id => {
