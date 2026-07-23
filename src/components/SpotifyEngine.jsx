@@ -234,47 +234,55 @@ const SpotifyEngine = ({ token }) => {
   if (!token) return null;
 
   return (
-    <div className="bg-[#0f1117]/60 backdrop-blur-md border border-emerald-900/30 rounded-2xl p-5 shadow-2xl flex flex-col w-full shrink-0">
+    // METALLIC GLASS UPGRADE: Deep blur, dual-tone metallic gradient, specular edge highlights
+    <div className="bg-gradient-to-br from-[#1a1d24]/60 to-[#090a0f]/80 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)] flex flex-col w-full shrink-0 relative overflow-hidden">
         
-        <div className="flex items-center justify-between mb-4 border-b border-emerald-900/30 pb-3">
-            <div className="flex items-center space-x-2 text-emerald-500">
-                <Radio className={`w-5 h-5 ${isActive ? 'animate-pulse text-emerald-400' : 'text-emerald-700'}`} />
-                <span className="font-mono font-bold tracking-widest text-sm text-emerald-100">AUDIO ENGINE</span>
+        {/* Subtle Top Inner Glint */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent" />
+
+        <div className="flex items-center justify-between mb-5 border-b border-emerald-900/40 pb-4 relative z-10">
+            <div className="flex items-center space-x-3">
+                <div className="p-1.5 bg-[#030712]/50 rounded border border-emerald-900/30 shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]">
+                  <Radio className={`w-4 h-4 ${isActive ? 'animate-pulse text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]' : 'text-emerald-700'}`} />
+                </div>
+                <span className="font-mono font-bold tracking-widest text-sm text-emerald-100 drop-shadow-sm">AUDIO ENGINE</span>
             </div>
             {isReady && !isActive && (
-                <span className="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-2 py-1 rounded border border-amber-500/30">
-                    AWAITING SIGNAL
+                <span className="text-[9px] font-mono bg-amber-500/10 text-amber-400 px-2 py-1 rounded shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-amber-500/30 tracking-widest uppercase">
+                    Awaiting Signal
                 </span>
             )}
         </div>
 
         {/* Visualizer & Track Info */}
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="flex items-center space-x-4 mb-5 relative z-10">
             {currentTrack?.album?.images[0]?.url ? (
-                <img 
-                  src={currentTrack.album.images[0].url} 
-                  alt="Album Art" 
-                  className="w-16 h-16 rounded-md border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)] object-cover" 
-                />
+                <div className="w-16 h-16 rounded-xl border border-emerald-900/50 border-t-emerald-500/30 border-l-emerald-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] overflow-hidden shrink-0">
+                  <img 
+                    src={currentTrack.album.images[0].url} 
+                    alt="Album Art" 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
             ) : (
-                <div className="w-16 h-16 rounded-md border border-emerald-900/50 bg-[#090a0f] flex items-center justify-center">
-                    <Disc className="w-8 h-8 text-emerald-900" />
+                <div className="w-16 h-16 rounded-xl border border-emerald-900/50 border-t-emerald-500/20 border-l-emerald-500/20 bg-[#090a0f]/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0">
+                    <Disc className="w-8 h-8 text-emerald-900/50" />
                 </div>
             )}
             
             <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="text-emerald-100 font-bold truncate">
+                <span className="text-emerald-100 font-bold truncate drop-shadow-sm text-lg">
                     {currentTrack ? currentTrack.name : 'System Idle'}
                 </span>
-                <span className="text-emerald-700 font-mono text-xs truncate">
+                <span className="text-emerald-600 font-mono text-xs truncate tracking-wider">
                     {currentTrack ? currentTrack.artists.map(a => a.name).join(', ') : 'Waiting for track data...'}
                 </span>
             </div>
         </div>
 
-        {/* Telemetry: Progress Bar with Dynamic Gradient */}
-        <div className="flex items-center gap-3 mb-5 text-[10px] font-mono text-emerald-700">
-            <span className="w-8 text-right">{formatTime(position)}</span>
+        {/* Telemetry: Progress Bar */}
+        <div className="flex items-center gap-3 mb-6 text-[10px] font-mono text-emerald-600 relative z-10">
+            <span className="w-8 text-right drop-shadow-sm">{formatTime(position)}</span>
             <input 
                 type="range" 
                 min="0" 
@@ -285,24 +293,24 @@ const SpotifyEngine = ({ token }) => {
                 onTouchEnd={handleSeekEnd}
                 disabled={!isActive}
                 style={{ 
-                    background: `linear-gradient(to right, #34d399 ${progressPercent}%, rgba(6, 78, 59, 0.4) ${progressPercent}%)` 
+                    background: `linear-gradient(to right, #34d399 ${progressPercent}%, #030712 ${progressPercent}%)` 
                 }}
-                className="flex-1 h-1 rounded-lg appearance-none cursor-pointer disabled:opacity-50 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
+                className="flex-1 h-1.5 bg-[#030712] rounded-lg appearance-none cursor-pointer disabled:opacity-50 transition-all focus:outline-none border border-emerald-900/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(16,185,129,0.8)] hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
             />
-            <span className="w-8">{formatTime(duration)}</span>
+            <span className="w-8 drop-shadow-sm">{formatTime(duration)}</span>
         </div>
 
         {/* Master Controls & Volume Layer */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8 relative z-10">
             
-            {/* Volume Control with Dynamic Gradient */}
-            <div className="flex items-center gap-2 w-28 group">
+            {/* Volume Control */}
+            <div className="flex items-center gap-2 w-28 group bg-[#030712]/40 p-2 rounded-lg border border-emerald-900/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
                 <button 
                     onClick={toggleMute} 
                     disabled={!isReady}
                     className="text-emerald-700 hover:text-emerald-400 disabled:opacity-30 transition-colors cursor-pointer"
                 >
-                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    {isMuted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 drop-shadow-[0_0_3px_rgba(16,185,129,0.5)]" />}
                 </button>
                 <input 
                     type="range" 
@@ -313,18 +321,18 @@ const SpotifyEngine = ({ token }) => {
                     onChange={handleVolumeChange} 
                     disabled={!isReady}
                     style={{ 
-                        background: `linear-gradient(to right, #34d399 ${volumePercent}%, rgba(6, 78, 59, 0.4) ${volumePercent}%)` 
+                        background: `linear-gradient(to right, #34d399 ${volumePercent}%, transparent ${volumePercent}%)` 
                     }}
-                    className="w-full h-1 rounded-lg appearance-none cursor-pointer opacity-50 group-hover:opacity-100 disabled:opacity-30 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
+                    className="w-full h-1 bg-[#090a0f] rounded-lg appearance-none cursor-pointer opacity-70 group-hover:opacity-100 disabled:opacity-30 transition-all focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-150 hover:[&::-webkit-slider-thumb]:bg-emerald-300 [&::-webkit-slider-thumb]:transition-all" 
                 />
             </div>
 
-            {/* Hardware Buttons */}
-            <div className="flex items-center space-x-4">
+            {/* Hardware Buttons (Machined Style) */}
+            <div className="flex items-center space-x-5">
                 <button 
                     onClick={handlePrevTrack} 
                     disabled={!isActive}
-                    className="p-2 text-emerald-600 hover:text-emerald-400 disabled:opacity-30 transition-colors cursor-pointer"
+                    className="p-2 text-emerald-600 hover:text-emerald-300 hover:scale-110 disabled:opacity-30 transition-all cursor-pointer drop-shadow-sm"
                 >
                     <SkipBack className="w-5 h-5" />
                 </button>
@@ -332,15 +340,15 @@ const SpotifyEngine = ({ token }) => {
                 <button 
                     onClick={handleTogglePlay} 
                     disabled={!isActive}
-                    className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:opacity-30 transition-all cursor-pointer"
+                    className="p-3.5 bg-emerald-500/10 backdrop-blur-md border border-emerald-500/40 border-t-emerald-400/50 rounded-full text-emerald-400 hover:bg-emerald-500/20 hover:scale-105 transition-all shadow-[0_4px_15px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)] disabled:opacity-30 cursor-pointer"
                 >
-                    {isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                    {isPaused ? <Play className="w-5 h-5 fill-current ml-0.5 drop-shadow-md" /> : <Pause className="w-5 h-5 fill-current drop-shadow-md" />}
                 </button>
 
                 <button 
                     onClick={handleNextTrack} 
                     disabled={!isActive}
-                    className="p-2 text-emerald-600 hover:text-emerald-400 disabled:opacity-30 transition-colors cursor-pointer"
+                    className="p-2 text-emerald-600 hover:text-emerald-300 hover:scale-110 disabled:opacity-30 transition-all cursor-pointer drop-shadow-sm"
                 >
                     <SkipForward className="w-5 h-5" />
                 </button>
@@ -350,14 +358,14 @@ const SpotifyEngine = ({ token }) => {
         </div>
 
         {/* Input Pipeline */}
-        <div className="flex flex-col gap-3 mt-auto border-t border-emerald-900/30 pt-4">
+        <div className="flex flex-col gap-3 mt-auto border-t border-emerald-900/40 pt-5 relative z-10">
             
             <button 
                 onClick={() => executePlayback(DEFAULT_SOOTHING_URI, true)}
                 disabled={!isReady}
-                className="w-full flex items-center justify-center py-2 px-3 bg-[#090a0f] border border-emerald-900/50 rounded-lg hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-colors disabled:opacity-50 group cursor-pointer"
+                className="w-full flex items-center justify-center py-3 px-3 bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/50 border-t-emerald-500/20 border-l-emerald-500/20 rounded-xl hover:border-emerald-400/50 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)] disabled:opacity-50 group cursor-pointer"
             >
-                <span className="font-mono text-[10px] font-bold text-emerald-600 group-hover:text-emerald-400 tracking-wider text-center uppercase">
+                <span className="font-mono text-[10px] font-bold text-emerald-600 group-hover:text-emerald-300 tracking-wider text-center uppercase transition-colors">
                     Load Default Soothing Mix
                 </span>
             </button>
@@ -369,19 +377,19 @@ const SpotifyEngine = ({ token }) => {
                     onChange={(e) => { setCustomInput(e.target.value); setInputError(""); }}
                     onKeyDown={(e) => e.key === 'Enter' && handleCustomPlay()}
                     placeholder="Paste Spotify Link or URI..."
-                    className="flex-1 bg-[#090a0f] border border-emerald-900/50 rounded-lg py-1.5 px-3 text-emerald-100 font-mono text-xs focus:outline-none focus:border-emerald-500/50 placeholder-emerald-900/50 transition-colors"
+                    className="flex-1 bg-[#030712]/80 border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl py-2 px-3 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-500/80 transition-colors placeholder-emerald-900/60"
                 />
                 <button
                     onClick={handleCustomPlay}
                     disabled={!isReady || !customInput.trim()}
-                    className="p-1.5 bg-[#090a0f] border border-emerald-900/50 rounded-lg hover:border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-600 hover:text-emerald-400 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="p-2 bg-[#090a0f]/80 border border-emerald-900/50 border-t-emerald-500/20 border-l-emerald-500/20 rounded-xl hover:border-emerald-500/60 hover:text-emerald-400 text-emerald-600 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)] disabled:opacity-50 cursor-pointer"
                 >
                     <LinkIcon className="w-4 h-4" />
                 </button>
             </div>
             
             {inputError && (
-                <span className="text-red-400/80 font-mono text-[10px] text-center -mt-1">
+                <span className="text-red-400/90 font-mono text-[10px] text-center mt-1 drop-shadow-md">
                     {inputError}
                 </span>
             )}

@@ -85,7 +85,6 @@ const DailySyncModal = ({ user, onClose, onAuthError }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Trigger the auth error intercept on 401
       if (getFileRes.status === 401) {
         onAuthError("GitHub connection expired or revoked. Please log in again to restore sync access.");
         return;
@@ -116,7 +115,6 @@ const DailySyncModal = ({ user, onClose, onAuthError }) => {
         })
       });
 
-      // Trigger the auth error intercept if token expires mid-request
       if (putRes.status === 401) {
          onAuthError("GitHub connection expired mid-sync. Please log in again.");
          return;
@@ -145,83 +143,86 @@ const DailySyncModal = ({ user, onClose, onAuthError }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-[#0f1117] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
+        className="bg-gradient-to-br from-[#1a1d24]/95 to-[#090a0f]/95 backdrop-blur-3xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] w-full max-w-sm relative transform scale-100 transition-transform overflow-hidden pt-8 pb-6 px-6"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent z-50" />
+
         <button 
           onClick={onClose} 
           disabled={isSyncing}
-          className="absolute top-4 right-4 text-emerald-700 hover:text-emerald-400 disabled:opacity-50 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-xl bg-[#030712]/50 border border-emerald-900/50 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition-all cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] z-10 disabled:opacity-50"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="flex flex-col items-center text-center mt-2">
-          <div className="p-4 rounded-full mb-4 transition-colors duration-300 bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+        <div className="flex flex-col items-center text-center mt-2 relative z-10">
+          
+          <div className="p-4 rounded-2xl mb-5 transition-colors duration-300 bg-[#090a0f]/80 border border-emerald-900/50 border-t-emerald-500/30 border-l-emerald-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)]">
             {syncComplete || (unsyncedDocs.length === 0 && !isSyncing) ? (
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 drop-shadow-md" />
             ) : (
-              <DatabaseBackup className={`w-8 h-8 text-emerald-400 ${isSyncing ? 'animate-pulse' : ''}`} />
+              <DatabaseBackup className={`w-8 h-8 text-emerald-400 drop-shadow-md ${isSyncing ? 'animate-pulse' : ''}`} />
             )}
           </div>
           
-          <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
+          <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase drop-shadow-md">
             {syncComplete || (unsyncedDocs.length === 0 && !isSyncing) ? 'Sync Complete' : 'Daily Sync'}
           </h2>
           
-          <p className="text-emerald-700/80 text-xs font-mono mb-6">
+          <p className="text-emerald-600 text-xs font-mono mb-6 tracking-wider uppercase">
             {unsyncedDocs.length > 0 
               ? `You have ${unsyncedDocs.length} unsynced session(s) pending.` 
               : "All sessions are synced for today."}
           </p>
 
-          <div className="bg-[#090a0f]/80 w-full border border-emerald-900/20 rounded-xl p-4 mb-6 min-h-[100px]">
-            <div className="text-[10px] text-emerald-700 font-mono mb-3 uppercase tracking-widest border-b border-emerald-900/30 pb-2 text-left">
+          <div className="bg-[#030712]/40 backdrop-blur-md border border-emerald-900/50 border-t-emerald-500/10 border-l-emerald-500/10 shadow-[0_4px_15px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)] w-full rounded-2xl p-5 mb-6 min-h-[100px]">
+            <div className="text-[10px] text-emerald-500 font-mono mb-3 uppercase tracking-widest border-b border-emerald-900/30 pb-2 text-left drop-shadow-sm">
               Today's Grand Total
             </div>
             {sessions.length === 0 ? (
-              <div className="flex h-[50px] items-center justify-center text-emerald-700 font-mono text-xs">
+              <div className="flex h-[50px] items-center justify-center text-emerald-700 font-mono text-xs uppercase tracking-widest">
                 No sessions logged today.
               </div>
             ) : (
-              <ul className="space-y-2 text-left">
+              <ul className="space-y-2.5 text-left">
                 {sessions.map((s, idx) => (
-                  <li key={idx} className="flex justify-between items-center text-xs">
-                    <span className="text-emerald-400 font-mono">_{s.task}</span>
-                    <span className="text-emerald-100/90 font-bold font-mono">{formatTime(s.duration)}</span>
+                  <li key={idx} className="flex justify-between items-center text-xs bg-[#090a0f]/50 p-2 rounded-lg border border-emerald-900/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                    <span className="text-emerald-400/80 font-mono uppercase tracking-wider">_{s.task}</span>
+                    <span className="text-emerald-300 font-bold font-mono drop-shadow-sm">{formatTime(s.duration)}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
           
-          <div className="flex w-full space-x-3">
+          <div className="flex w-full gap-4">
             <button 
               onClick={onClose} 
               disabled={isSyncing}
-              className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 disabled:opacity-50 transition-colors cursor-pointer"
+              className="flex-1 py-3 rounded-xl border border-emerald-900/50 bg-[#090a0f]/50 text-emerald-500 font-mono font-bold text-xs tracking-wider hover:text-emerald-400 hover:border-emerald-500/50 disabled:opacity-50 transition-all cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] uppercase"
             >
               CANCEL
             </button>
 
             {syncComplete || unsyncedDocs.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono font-bold text-xs tracking-wider cursor-not-allowed">
+              <div className="flex-[1.5] flex items-center justify-center space-x-2 py-3 rounded-xl border border-emerald-500/30 bg-[#090a0f]/30 text-emerald-700 font-mono font-bold text-xs tracking-wider cursor-not-allowed uppercase shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]">
                 <span>ALL SYNCED</span>
               </div>
             ) : (
               <button 
                 onClick={pushDailyCommit} 
                 disabled={isSyncing}
-                className="flex-[1.5] flex items-center justify-center space-x-2 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className="flex-[1.5] flex items-center justify-center space-x-2 py-3 rounded-xl border border-emerald-500/40 border-t-emerald-400/40 bg-gradient-to-b from-emerald-500/20 to-emerald-600/10 text-emerald-300 font-mono font-bold text-xs tracking-widest hover:from-emerald-500/30 hover:shadow-[0_4px_15px_rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-[0_4px_15px_rgba(16,185,129,0.15),inset_0_1px_1px_rgba(255,255,255,0.1)] uppercase"
               >
                 {isSyncing ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin drop-shadow-md" />
                     <span>ENCRYPTING...</span>
                   </>
                 ) : (
                   <>
-                    <GithubIcon className="w-4 h-4" />
+                    <GithubIcon className="w-4 h-4 drop-shadow-md" />
                     <span>SYNC {unsyncedDocs.length} LOG(S)</span>
                   </>
                 )}

@@ -94,81 +94,84 @@ const ProfileSettingsModal = ({ user, onClose }) => {
   };
 
   return (
-    // 1. Added onClick={onClose} to the backdrop wrapper
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
       onClick={onClose}
     >
       
-      {/* 2. Added onClick={(e) => e.stopPropagation()} to prevent closing when clicking inside the modal */}
+      {/* METALLIC GLASS UPGRADE */}
       <div 
-        className="bg-[#0f1117]/95 border border-emerald-900/50 rounded-2xl w-full max-w-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row relative"
+        className="bg-gradient-to-br from-[#1a1d24]/95 to-[#090a0f]/95 backdrop-blur-3xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl w-full max-w-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] overflow-hidden flex flex-col md:flex-row relative"
         onClick={(e) => e.stopPropagation()}
       >
-        
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent z-50" />
+
         {/* Sidebar */}
-        <div className="w-full md:w-1/3 bg-[#090a0f] border-b md:border-b-0 md:border-r border-emerald-900/30 p-4 flex flex-col space-y-2">
-          <h3 className="text-emerald-700 font-mono text-xs font-bold uppercase tracking-widest mb-4 px-2">Settings</h3>
+        <div className="w-full md:w-1/3 bg-[#030712]/40 backdrop-blur-md border-b md:border-b-0 md:border-r border-emerald-900/40 p-6 flex flex-col space-y-3 relative z-10">
+          <h3 className="text-emerald-500 font-mono text-[10px] font-bold uppercase tracking-widest mb-2 px-2 drop-shadow-sm">System Settings</h3>
           
-          <button onClick={() => setActiveTab('identity')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'identity' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
-            <User className="w-4 h-4" />
+          <button onClick={() => setActiveTab('identity')} className={`cursor-pointer flex items-center space-x-3 w-full text-left px-4 py-3 rounded-xl font-mono text-xs tracking-wider transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] ${activeTab === 'identity' ? 'bg-gradient-to-r from-emerald-500/20 to-transparent border border-emerald-500/40 border-t-emerald-400/30 text-emerald-300' : 'bg-[#090a0f]/50 border border-transparent text-slate-400 hover:text-emerald-300 hover:bg-[#090a0f]/80 hover:border-emerald-900/50'}`}>
+            <User className="w-4 h-4 drop-shadow-sm" />
             <span>Identity</span>
           </button>
           
-          <button onClick={() => setActiveTab('data')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'data' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
-            <Database className="w-4 h-4" />
+          <button onClick={() => setActiveTab('data')} className={`cursor-pointer flex items-center space-x-3 w-full text-left px-4 py-3 rounded-xl font-mono text-xs tracking-wider transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] ${activeTab === 'data' ? 'bg-gradient-to-r from-blue-500/20 to-transparent border border-blue-500/40 border-t-blue-400/30 text-blue-300' : 'bg-[#090a0f]/50 border border-transparent text-slate-400 hover:text-blue-300 hover:bg-[#090a0f]/80 hover:border-blue-900/50'}`}>
+            <Database className="w-4 h-4 drop-shadow-sm" />
             <span>Data Export</span>
           </button>
 
-          <button onClick={() => setActiveTab('danger')} className={`cursor-pointer flex items-center space-x-2 w-full text-left px-3 py-2.5 rounded-lg font-mono text-sm transition-all ${activeTab === 'danger' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`}>
-            <AlertOctagon className="w-4 h-4" />
+          <button onClick={() => setActiveTab('danger')} className={`cursor-pointer flex items-center space-x-3 w-full text-left px-4 py-3 rounded-xl font-mono text-xs tracking-wider transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] ${activeTab === 'danger' ? 'bg-gradient-to-r from-red-500/20 to-transparent border border-red-500/40 border-t-red-400/30 text-red-400' : 'bg-[#090a0f]/50 border border-transparent text-slate-400 hover:text-red-400 hover:bg-[#090a0f]/80 hover:border-red-900/50'}`}>
+            <AlertOctagon className="w-4 h-4 drop-shadow-sm" />
             <span>Danger Zone</span>
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-8 relative flex flex-col min-h-[350px]">
+        <div className="flex-1 p-8 relative flex flex-col min-h-[400px] z-10">
           
           <button 
             onClick={onClose} 
-            className="absolute top-4 right-4 z-20 p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 transition-colors cursor-pointer"
+            className="absolute top-6 right-6 z-20 p-2 rounded-xl bg-[#090a0f]/50 border border-emerald-900/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition-all cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
           {activeTab === 'identity' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
-              <div> 
-                <h2 className="text-lg font-bold text-white mb-1">Network Identity</h2>
-                <p className="text-xs text-slate-400 font-mono">Customize how you appear on the leaderboard.</p>
+              <div className="border-b border-emerald-900/30 pb-4 mb-2"> 
+                <h2 className="text-xl font-bold text-white mb-1 tracking-widest uppercase drop-shadow-md">Network Identity</h2>
+                <p className="text-xs text-emerald-600 font-mono tracking-widest uppercase">Customize how you appear on the ledger.</p>
               </div>
 
-              <div className="flex items-center space-x-4 mt-2">
-                <img 
-                  src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
-                  alt="Preview" 
-                  className="w-16 h-16 rounded-full border border-emerald-500/50 bg-[#090a0f] object-cover shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
-                />
+              <div className="flex items-center space-x-5">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-emerald-500 blur-md opacity-20 rounded-full" />
+                  <img 
+                    src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
+                    alt="Preview" 
+                    className="relative w-20 h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] object-cover shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]" 
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-mono text-emerald-700 uppercase mb-1">Avatar URL</label>
+                  <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-2 drop-shadow-sm">Avatar URL</label>
                   <input 
                     type="text" 
                     value={photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-[#030712]/50 text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 transition-colors truncate"
+                    className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-3 outline-none focus:border-emerald-500/80 transition-colors truncate placeholder-emerald-900/60"
                   />
                 </div>
               </div>
 
-              <div className="mt-4">
-                <label className="block text-xs font-mono text-emerald-700 uppercase mb-1">Codename (Nickname)</label>
+              <div className="mt-2">
+                <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-2 drop-shadow-sm">Codename (Nickname)</label>
                 <input 
                   type="text" 
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Hacker"
-                  className="w-full bg-[#030712]/50 text-emerald-100 font-mono text-sm border border-emerald-900/50 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-3 outline-none focus:border-emerald-500/80 transition-colors placeholder-emerald-900/60"
                 />
               </div>
 
@@ -176,9 +179,9 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                 <button 
                   onClick={handleUpdateProfile}
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center space-x-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-3 rounded-xl font-bold font-mono transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                  className="w-full flex items-center justify-center space-x-3 bg-gradient-to-b from-emerald-500/20 to-emerald-600/10 border border-emerald-500/40 border-t-emerald-400/40 hover:from-emerald-500/30 text-emerald-300 py-3.5 rounded-xl font-bold font-mono tracking-widest uppercase transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_15px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)]"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4 drop-shadow-sm" />
                   <span>{isSaving ? 'UPDATING...' : 'SAVE IDENTITY'}</span>
                 </button>
               </div>
@@ -187,22 +190,22 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
           {activeTab === 'data' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
-              <div>
-                <h2 className="text-lg font-bold text-white mb-1">Data Vault</h2>
-                <p className="text-xs text-slate-400 font-mono">Download a local backup of your telemetry.</p>
+              <div className="border-b border-blue-900/30 pb-4 mb-2">
+                <h2 className="text-xl font-bold text-white mb-1 tracking-widest uppercase drop-shadow-md">Data Vault</h2>
+                <p className="text-xs text-blue-500/70 font-mono tracking-widest uppercase">Extract local telemetry backups.</p>
               </div>
 
-              <div className="bg-[#030712]/50 border border-blue-900/30 p-5 rounded-xl mt-2">
-                <p className="text-sm text-blue-200/70 font-mono mb-6 leading-relaxed">Export all logged focus sessions as a raw JSON file. This includes task names, durations, timestamps, and earned XP.</p>
+              <div className="bg-[#030712]/50 border border-blue-900/30 p-6 rounded-2xl mt-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
+                <p className="text-sm text-blue-200/70 font-mono leading-relaxed">Export all logged focus sessions as a raw JSON matrix. Includes designation, chronological timestamps, durations, and accumulated XP values.</p>
               </div>
               
               <div className="mt-auto pt-6">
                 <button 
                   onClick={handleExportData}
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center space-x-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 py-3 rounded-xl font-bold font-mono transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_10px_rgba(59,130,246,0.1)]"
+                  className="w-full flex items-center justify-center space-x-3 bg-gradient-to-b from-blue-500/20 to-blue-600/10 border border-blue-500/40 border-t-blue-400/40 hover:from-blue-500/30 text-blue-300 py-3.5 rounded-xl font-bold font-mono tracking-widest uppercase transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_15px_rgba(59,130,246,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)]"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 drop-shadow-sm" />
                   <span>{isSaving ? 'PACKAGING...' : 'DOWNLOAD JSON'}</span>
                 </button>
               </div>
@@ -211,22 +214,22 @@ const ProfileSettingsModal = ({ user, onClose }) => {
 
           {activeTab === 'danger' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
-              <div>
-                <h2 className="text-lg font-bold text-white mb-1 text-red-400">Danger Zone</h2>
-                <p className="text-xs text-slate-400 font-mono">Irreversible system actions.</p>
+              <div className="border-b border-red-900/30 pb-4 mb-2">
+                <h2 className="text-xl font-bold text-red-400 mb-1 tracking-widest uppercase drop-shadow-md">Danger Zone</h2>
+                <p className="text-xs text-red-600/70 font-mono tracking-widest uppercase">Irreversible system actions.</p>
               </div>
 
-              <div className="bg-red-950/10 border border-red-900/30 p-5 rounded-xl mt-2">
-                <p className="text-sm text-red-200/70 font-mono mb-6 leading-relaxed">Permanently delete your Verto account. This will wipe all categories, telemetry, and leaderboard rankings from the Firebase database.</p>
+              <div className="bg-[#030712]/50 border border-red-900/30 p-6 rounded-2xl mt-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
+                <p className="text-sm text-red-300/70 font-mono leading-relaxed">Permanently purge your Verto account from the mainframe. This will obliterate all categories, telemetry, and leaderboard rankings from the Firebase database forever.</p>
               </div>
               
               <div className="mt-auto pt-6">
                 <button 
                   onClick={handleDeleteAccount}
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center space-x-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 py-3 rounded-xl font-bold font-mono transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                  className="w-full flex items-center justify-center space-x-3 bg-gradient-to-b from-red-500/20 to-red-600/10 border border-red-500/40 border-t-red-400/40 hover:from-red-500/30 text-red-400 py-3.5 rounded-xl font-bold font-mono tracking-widest uppercase transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_15px_rgba(239,68,68,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)]"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 drop-shadow-sm" />
                   <span>{isSaving ? 'PURGING...' : 'TERMINATE ACCOUNT'}</span>
                 </button>
               </div>
@@ -236,13 +239,13 @@ const ProfileSettingsModal = ({ user, onClose }) => {
       </div>
 
       {message && (
-        <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center space-x-2 px-5 py-3 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] border backdrop-blur-md animate-fade-in whitespace-nowrap ${
+        <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center space-x-3 px-6 py-3.5 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1)] border backdrop-blur-2xl animate-fade-in whitespace-nowrap ${
           message.type === 'error' 
-            ? 'bg-red-950/90 border-red-500/50 text-red-400' 
-            : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400'
+            ? 'bg-gradient-to-br from-red-950/90 to-red-900/90 border-red-500/50 border-t-red-400/50 text-red-200' 
+            : 'bg-gradient-to-br from-emerald-950/90 to-emerald-900/90 border-emerald-500/50 border-t-emerald-400/50 text-emerald-200'
         }`}>
-          {message.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-          <span className="text-sm font-mono font-bold">{message.text}</span>
+          {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 drop-shadow-md" /> : <AlertCircle className="w-4 h-4 drop-shadow-md" />}
+          <span className="text-xs font-mono font-bold tracking-widest uppercase drop-shadow-sm">{message.text}</span>
         </div>
       )}
     </div>
