@@ -8,8 +8,8 @@ import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
-import GuildDashboard from "./components/GuildDashboard";
-import AnalyticsDashboard from "./components/AnalyticsDashboard"; // NEW IMPORT
+import GroupDashboard from "./components/GroupDashboard"; // UPDATED IMPORT
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
@@ -27,7 +27,7 @@ function App() {
   const [authError, setAuthError] = useState(null);
 
   // --- WORKSPACE NAVIGATION ---
-  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'guilds', 'audio', 'analytics'
+  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'groups', 'audio', 'analytics'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -94,10 +94,10 @@ function App() {
   if (loading) return <div className="min-h-screen bg-[#030712]" />;
   if (!user) return <Landing onLogin={handleLogin} />;
 
-  // Workspace Navigation Items (Consolidated Profile & Analytics)
+  // Workspace Navigation Items
   const navItems = [
     { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
-    { id: 'guilds', icon: Users, label: 'GUILDS' },
+    { id: 'groups', icon: Users, label: 'GROUPS' }, // UPDATED LABEL & ID
     { id: 'audio', icon: Disc, label: 'AUDIO ENGINE' },
     { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
   ];
@@ -189,7 +189,8 @@ function App() {
                 </div>
               )}
 
-              {currentView === 'guilds' && <GuildDashboard user={user} />}
+              {/* UPDATED COMPONENT RENDER */}
+              {currentView === 'groups' && <GroupDashboard user={user} />}
               
               {currentView === 'audio' && (
                 <div className="h-full flex items-center justify-center text-emerald-700 font-mono">
