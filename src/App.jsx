@@ -9,7 +9,7 @@ import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
 import GuildDashboard from "./components/GuildDashboard";
-import AnalyticsDashboard from "./components/AnalyticsDashboard"; 
+import AnalyticsDashboard from "./components/AnalyticsDashboard"; // NEW IMPORT
 import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
@@ -94,11 +94,12 @@ function App() {
   if (loading) return <div className="min-h-screen bg-[#030712]" />;
   if (!user) return <Landing onLogin={handleLogin} />;
 
+  // Workspace Navigation Items (Consolidated Profile & Analytics)
   const navItems = [
     { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
     { id: 'guilds', icon: Users, label: 'GUILDS' },
     { id: 'audio', icon: Disc, label: 'AUDIO ENGINE' },
-    { id: 'analytics', icon: BarChart2, label: 'ANALYTICS' },
+    { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
   ];
 
   return (
@@ -110,6 +111,7 @@ function App() {
         {/* === SIDEBAR NAVIGATION === */}
         <aside className="w-16 md:w-64 bg-[#030712]/80 backdrop-blur-xl border-r border-emerald-900/30 flex flex-col justify-between shrink-0 transition-all duration-300">
           <div>
+            {/* Logo */}
             <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-emerald-900/30">
               <h1 className="text-xl md:text-2xl font-bold text-white tracking-wider hidden md:block">
                 VERTO<span className="text-emerald-500">.</span>
@@ -117,6 +119,7 @@ function App() {
               <h1 className="text-xl font-bold text-white md:hidden">V<span className="text-emerald-500">.</span></h1>
             </div>
 
+            {/* Nav Links */}
             <nav className="p-3 md:p-4 flex flex-col gap-2 mt-4 w-full">
               {navItems.map((item) => (
                 <button
@@ -136,6 +139,7 @@ function App() {
             </nav>
           </div>
 
+          {/* User Profile Footer */}
           <div className="p-4 border-t border-emerald-900/30">
              <div className="flex flex-col md:flex-row items-center md:space-x-3 p-2">
                 <img 
@@ -157,6 +161,7 @@ function App() {
         {/* === MAIN CONTENT WORKSPACE === */}
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           
+          {/* Top Utility Bar (Sync & Spotify Connect) */}
           <header className="h-16 shrink-0 border-b border-emerald-900/30 flex items-center justify-end px-6 space-x-4 bg-[#030712]/50 backdrop-blur-sm">
             {!spotifyToken && (
               <button onClick={redirectToSpotifyAuth} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
@@ -169,40 +174,40 @@ function App() {
             </button>
           </header>
 
+          {/* Dynamic View Injection */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
             <div className="max-w-6xl mx-auto h-full animate-fade-in">
               
-              {/* MASTER LAYOUT: The Timer is now ALWAYS mounted so state is never lost */}
-              <div className={currentView === 'focus' ? "flex flex-col xl:flex-row gap-6 h-full" : "h-full relative"}>
-
-                {/* The Timer component itself determines if it should be Full Screen or a Floating Widget based on currentView */}
-                <Timer user={user} isBackground={currentView !== 'focus'} />
-
-                {currentView === 'focus' && (
+              {currentView === 'focus' && (
+                <div className="flex flex-col xl:flex-row gap-6 h-full">
+                  <div className="flex-[1.5] min-h-[500px]">
+                    <Timer user={user} />
+                  </div>
                   <div className="flex-1 xl:max-w-md h-[500px] xl:h-full">
                     <Feed user={user} />
                   </div>
-                )}
+                </div>
+              )}
 
-                {currentView === 'guilds' && <GuildDashboard user={user} />}
-                
-                {currentView === 'audio' && (
-                  <div className="h-full flex items-center justify-center text-emerald-700 font-mono">
-                    {spotifyToken ? <SpotifyEngine token={spotifyToken} /> : "INITIALIZE SPOTIFY ABOVE TO ACCESS AUDIO ENGINE."}
-                  </div>
-                )}
+              {currentView === 'guilds' && <GuildDashboard user={user} />}
+              
+              {currentView === 'audio' && (
+                <div className="h-full flex items-center justify-center text-emerald-700 font-mono">
+                  {spotifyToken ? <SpotifyEngine token={spotifyToken} /> : "INITIALIZE SPOTIFY ABOVE TO ACCESS AUDIO ENGINE."}
+                </div>
+              )}
 
-                {currentView === 'analytics' && <AnalyticsDashboard user={user} />}
-
-              </div>
+              {currentView === 'analytics' && <AnalyticsDashboard user={user} />}
 
             </div>
           </div>
         </main>
 
+        {/* === MODALS === */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
+        {/* Sign Out Modal */}
         {isSignOutModalOpen && (
           <div 
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
@@ -223,11 +228,28 @@ function App() {
                 <div className="p-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
                   <LogOut className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">Sign Out</h2>
-                <p className="text-emerald-700/80 text-xs font-mono mb-8">Are you sure you want to sign out?</p>
+                
+                <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
+                  Sign Out
+                </h2>
+                
+                <p className="text-emerald-700/80 text-xs font-mono mb-8">
+                  Are you sure you want to sign out?
+                </p>
+                
                 <div className="flex w-full space-x-3">
-                  <button onClick={() => setIsSignOutModalOpen(false)} className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 transition-colors cursor-pointer">CANCEL</button>
-                  <button onClick={executeSignOut} className="flex-1 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 transition-all cursor-pointer">SIGN OUT</button>
+                  <button 
+                    onClick={() => setIsSignOutModalOpen(false)} 
+                    className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                  >
+                    CANCEL
+                  </button>
+                  <button 
+                    onClick={executeSignOut} 
+                    className="flex-1 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all cursor-pointer"
+                  >
+                    SIGN OUT
+                  </button>
                 </div>
               </div>
             </div>
