@@ -191,16 +191,15 @@ function App() {
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
             <div className="max-w-6xl mx-auto h-full animate-fade-in">
               
-              {currentView === 'focus' && (
-                <div className="flex flex-col xl:flex-row gap-6 h-full">
-                  <div className="flex-[1.5] min-h-[500px]">
-                    <Timer user={user} />
-                  </div>
-                  <div className="flex-1 xl:max-w-md h-[500px] xl:h-full">
-                    <Feed user={user} />
-                  </div>
+              {/* === FIX: Hide the Focus Node instead of destroying it === */}
+              <div className={`flex-col xl:flex-row gap-6 h-full ${currentView === 'focus' ? 'flex' : 'hidden'}`}>
+                <div className="flex-[1.5] min-h-[500px]">
+                  <Timer user={user} isBackground={currentView !== 'focus'} setCurrentView={setCurrentView} />
                 </div>
-              )}
+                <div className="flex-1 xl:max-w-md h-[500px] xl:h-full">
+                  <Feed user={user} />
+                </div>
+              </div>
 
               {currentView === 'groups' && <GroupDashboard user={user} onViewProfile={setViewingProfile} />}
               
