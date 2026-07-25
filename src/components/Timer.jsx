@@ -53,20 +53,43 @@ const Timer = ({ user, isBackground }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Anchor to a real timestamp instead of counting ticks, so background-tab
+  // throttling of setInterval (browsers slow/clamp timers when a tab isn't
+  // focused) doesn't cause the displayed time to fall behind real time.
+  const startTimeRef = useRef(null); // Date.now() when this active run began
+  const baseSecondsRef = useRef(0);  // seconds already accumulated before this run
+
   useEffect(() => {
     let interval = null;
+
     if (isActive) {
-      if (seconds >= 14400) { 
+      if (seconds >= 14400) {
         setIsActive(false);
         setIsCapped(true);
       } else {
-        interval = setInterval(() => setSeconds((s) => s + 1), 1000);
+        startTimeRef.current = Date.now();
+        baseSecondsRef.current = seconds;
+
+        interval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          const next = baseSecondsRef.current + elapsed;
+
+          if (next >= 14400) {
+            setSeconds(14400);
+            setIsActive(false);
+            setIsCapped(true);
+          } else {
+            setSeconds(next);
+          }
+        }, 1000);
       }
     }
+
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, seconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
