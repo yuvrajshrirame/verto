@@ -10,7 +10,8 @@ import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
 import GroupDashboard from "./components/GroupDashboard"; 
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
-import CommandPalette from "./components/CommandPalette"; // <-- NEW IMPORT
+import CommandPalette from "./components/CommandPalette"; 
+import UserProfileModal from "./components/UserProfileModal"; 
 import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
@@ -22,13 +23,14 @@ function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   
+  const [viewingProfile, setViewingProfile] = useState(null); 
+
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyExpired, setSpotifyExpired] = useState(false);
 
   const [authError, setAuthError] = useState(null);
 
-  // --- WORKSPACE NAVIGATION ---
-  const [currentView, setCurrentView] = useState('focus'); // 'focus', 'groups', 'audio', 'analytics'
+  const [currentView, setCurrentView] = useState('focus'); 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -95,7 +97,6 @@ function App() {
   if (loading) return <div className="min-h-screen bg-[#030712]" />;
   if (!user) return <Landing onLogin={handleLogin} />;
 
-  // Workspace Navigation Items
   const navItems = [
     { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
     { id: 'groups', icon: Users, label: 'GROUPS' }, 
@@ -109,10 +110,8 @@ function App() {
       
       <div className="flex h-screen overflow-hidden selection:bg-emerald-500/30 z-10 relative">
         
-        {/* === SIDEBAR NAVIGATION === */}
         <aside className="w-16 md:w-64 bg-[#030712]/80 backdrop-blur-xl border-r border-emerald-900/30 flex flex-col justify-between shrink-0 transition-all duration-300">
           <div>
-            {/* Logo */}
             <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-emerald-900/30 relative">
               <h1 className="text-xl md:text-2xl font-bold text-white tracking-wider hidden md:block">
                 VERTO<span className="text-emerald-500">.</span>
@@ -120,7 +119,6 @@ function App() {
               <h1 className="text-xl font-bold text-white md:hidden">V<span className="text-emerald-500">.</span></h1>
             </div>
 
-            {/* Nav Links */}
             <nav className="p-3 md:p-4 flex flex-col gap-2 mt-4 w-full">
               {navItems.map((item) => (
                 <button
@@ -140,7 +138,6 @@ function App() {
             </nav>
           </div>
 
-          {/* User Profile Footer */}
           <div className="p-4 border-t border-emerald-900/30">
              <div className="flex flex-col md:flex-row items-center md:space-x-3 p-2">
                 <img 
@@ -159,10 +156,8 @@ function App() {
           </div>
         </aside>
 
-        {/* === MAIN CONTENT WORKSPACE === */}
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           
-          {/* Top Utility Bar (Sync & Spotify Connect) */}
           <header className="h-16 shrink-0 border-b border-emerald-900/30 flex items-center justify-between px-6 bg-[#030712]/50 backdrop-blur-sm">
             <div className="hidden md:flex items-center space-x-2 text-[10px] font-mono text-emerald-700 border border-emerald-900/30 px-3 py-1.5 rounded-lg bg-[#090a0f]/50">
               <span className="text-slate-400">Ctrl + K</span>
@@ -184,7 +179,6 @@ function App() {
             </div>
           </header>
 
-          {/* Dynamic View Injection */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
             <div className="max-w-6xl mx-auto h-full animate-fade-in">
               
@@ -199,7 +193,7 @@ function App() {
                 </div>
               )}
 
-              {currentView === 'groups' && <GroupDashboard user={user} />}
+              {currentView === 'groups' && <GroupDashboard user={user} onViewProfile={setViewingProfile} />}
               
               {currentView === 'audio' && (
                 <div className="h-full flex items-center justify-center text-emerald-700 font-mono">
@@ -213,20 +207,26 @@ function App() {
           </div>
         </main>
 
-        {/* === GLOBAL COMMAND PALETTE === */}
         <CommandPalette 
           setCurrentView={setCurrentView}
           setIsSyncModalOpen={setIsSyncModalOpen}
           setIsProfileModalOpen={setIsProfileModalOpen}
           setIsSignOutModalOpen={setIsSignOutModalOpen}
           initAudio={redirectToSpotifyAuth}
+          setViewingProfile={setViewingProfile} // <-- PASSED DOWN TO TRIGGER USER SEARCH
         />
 
-        {/* === MODALS === */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
-        {/* === METALLIC UPGRADED SIGN OUT MODAL === */}
+        {viewingProfile && (
+          <UserProfileModal 
+            profileContext={viewingProfile} 
+            currentUser={user} 
+            onClose={() => setViewingProfile(null)} 
+          />
+        )}
+
         {isSignOutModalOpen && (
           <div 
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"

@@ -3,14 +3,14 @@ import { collection, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, arra
 import { db } from '../firebase';
 import { Users, Crosshair, LogIn, Trophy, Activity, ShieldAlert, Key, Edit3, Trash2, Check, LogOut, UserX } from 'lucide-react';
 
-const GroupDashboard = ({ user }) => {
+// NEW: Accept onViewProfile prop
+const GroupDashboard = ({ user, onViewProfile }) => {
   const [userGroups, setUserGroups] = useState([]);
   const [activeGroup, setActiveGroup] = useState(null);
   
   const [joinCode, setJoinCode] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   
-  // Edit State
   const [isEditingName, setIsEditingName] = useState(false);
   const [editGroupName, setEditGroupName] = useState('');
 
@@ -18,7 +18,6 @@ const GroupDashboard = ({ user }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // USING "guilds" COLLECTION FOR FIREBASE RULES
   useEffect(() => {
     const q = query(collection(db, "guilds"), where("members", "array-contains", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -186,7 +185,7 @@ const GroupDashboard = ({ user }) => {
   return (
     <div className="w-full flex flex-col gap-6 animate-fade-in pb-10">
       
-      {/* HEADER ROW - METALLIC UPGRADE */}
+      {/* HEADER ROW */}
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 bg-gradient-to-br from-[#1a1d24]/60 to-[#090a0f]/80 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent" />
@@ -246,7 +245,7 @@ const GroupDashboard = ({ user }) => {
         </div>
       )}
 
-      {/* GROUP DATA VIEW - METALLIC UPGRADE */}
+      {/* GROUP DATA VIEW */}
       {activeGroup && (
         <div className="bg-gradient-to-br from-[#1a1d24]/60 to-[#090a0f]/80 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl p-6 md:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
@@ -308,6 +307,7 @@ const GroupDashboard = ({ user }) => {
           ) : (
             <div className="flex flex-col md:flex-row gap-10 relative z-10">
               
+              {/* LEADERBOARD */}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
@@ -323,7 +323,12 @@ const GroupDashboard = ({ user }) => {
                     <p className="text-emerald-700 font-mono text-xs">No telemetry recorded yet.</p>
                   ) : (
                     groupStats.leaderboard.map((member, idx) => (
-                      <div key={member.uid} className={`flex items-center justify-between p-4 rounded-2xl border backdrop-blur-sm ${member.uid === user.uid ? 'bg-gradient-to-r from-emerald-500/10 to-transparent border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1),inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-[#090a0f]/60 border-emerald-900/30 shadow-[0_2px_8px_rgba(0,0,0,0.2)]'}`}>
+                      <div 
+                        key={member.uid} 
+                        // NEW: Make the card clickable to trigger Profile Modal
+                        onClick={() => onViewProfile && onViewProfile({ uid: member.uid, groupId: activeGroup.id })}
+                        className={`flex items-center justify-between p-4 rounded-2xl border backdrop-blur-sm cursor-pointer hover:scale-[1.02] transition-all duration-300 ${member.uid === user.uid ? 'bg-gradient-to-r from-emerald-500/10 to-transparent border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1),inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-[#090a0f]/60 border-emerald-900/30 hover:border-emerald-500/40 shadow-[0_2px_8px_rgba(0,0,0,0.2)]'}`}
+                      >
                         <div className="flex items-center space-x-4">
                           <span className={`font-mono font-bold w-6 text-center text-lg ${idx === 0 && member.totalXp > 0 ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]' : idx === 1 && member.totalXp > 0 ? 'text-slate-300 drop-shadow-sm' : idx === 2 && member.totalXp > 0 ? 'text-amber-700 drop-shadow-sm' : 'text-emerald-800 text-sm'}`}>#{idx + 1}</span>
                           <img src={member.photo} alt="avatar" className="w-10 h-10 rounded-full border border-emerald-900/50 object-cover shadow-[0_0_10px_rgba(0,0,0,0.5)]" />
@@ -340,7 +345,7 @@ const GroupDashboard = ({ user }) => {
                             
                             {activeGroup.admin === user.uid && member.uid !== user.uid && (
                                 <button 
-                                    onClick={() => handleKickMember(member.uid)} 
+                                    onClick={(e) => { e.stopPropagation(); handleKickMember(member.uid); }} 
                                     className="p-1.5 bg-[#030712]/50 rounded-lg border border-red-900/30 text-red-900/50 hover:text-red-400 hover:border-red-500/50 transition-colors cursor-pointer shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]"
                                     title="Eject Operator"
                                 >
@@ -354,6 +359,7 @@ const GroupDashboard = ({ user }) => {
                 </div>
               </div>
 
+              {/* NETWORK DIAGNOSTICS */}
               <div className="flex-1 border-t md:border-t-0 md:border-l border-emerald-900/30 pt-8 md:pt-0 md:pl-10">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="p-1.5 bg-[#030712]/50 rounded border border-emerald-900/30 shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]">
@@ -367,7 +373,12 @@ const GroupDashboard = ({ user }) => {
                     <p className="text-emerald-700 font-mono text-xs">No category data available.</p>
                   ) : (
                     Object.entries(groupStats.categories).map(([uid, data]) => (
-                      <div key={uid} className="bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/40 border-t-emerald-500/10 border-l-emerald-500/10 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.02)]">
+                      <div 
+                        key={uid} 
+                        // NEW: Make the diagnostics card clickable too
+                        onClick={() => onViewProfile && onViewProfile({ uid, groupId: activeGroup.id })}
+                        className="bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/40 border-t-emerald-500/10 border-l-emerald-500/10 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.02)] cursor-pointer hover:border-emerald-500/40 transition-colors"
+                      >
                         <h4 className="text-xs font-bold text-emerald-100 mb-4 flex items-center gap-2 border-b border-emerald-900/30 pb-2 drop-shadow-sm">
                           {uid === user.uid && user.displayName ? user.displayName.split(" ")[0] : data.name} 
                           {uid === user.uid && <span className="text-[9px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">YOU</span>}

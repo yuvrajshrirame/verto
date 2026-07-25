@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { updateProfile, deleteUser } from 'firebase/auth';
-import { collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, writeBatch, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { X, User, Database, AlertOctagon, Save, Download, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, User, Database, AlertOctagon, Save, Download, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff, AtSign } from 'lucide-react';
 
 const ProfileSettingsModal = ({ user, onClose }) => {
   const [activeTab, setActiveTab] = useState('identity');
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
+  const [username, setUsername] = useState(''); // NEW: Custom Username
+  const [isPublic, setIsPublic] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    const fetchUserDoc = async () => {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.isPublic !== undefined) setIsPublic(data.isPublic);
+        if (data.username) setUsername(data.username);
+      } else {
+        // Generate a random default username if they don't have one
+        setUsername(`operator_${Math.floor(Math.random() * 9000) + 1000}`);
+      }
+    };
+    fetchUserDoc();
+  }, [user.uid]);
 
   useEffect(() => {
     if (message) {
@@ -25,10 +42,24 @@ const ProfileSettingsModal = ({ user, onClose }) => {
   const handleUpdateProfile = async () => {
     setIsSaving(true);
     try {
+      const finalName = displayName.trim() || "Hacker";
+      const finalPhoto = photoURL.trim() || "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker";
+      const finalUsername = username.trim().toLowerCase().replace(/\s+/g, '') || `operator_${Math.floor(Math.random() * 9000) + 1000}`;
+
+      // 1. Update Auth Profile
       await updateProfile(auth.currentUser, {
-        displayName: displayName.trim() || "Hacker",
-        photoURL: photoURL.trim() || "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker"
+        displayName: finalName,
+        photoURL: finalPhoto
       });
+
+      // 2. Update Global Users Collection (Includes Username)
+      await setDoc(doc(db, 'users', user.uid), {
+        displayName: finalName,
+        photoURL: finalPhoto,
+        username: finalUsername,
+        isPublic: isPublic
+      }, { merge: true });
+
       setMessage({ type: 'success', text: 'Identity updated. Refresh to sync globally.' });
     } catch (error) {
       console.error("Update error:", error);
@@ -98,15 +129,12 @@ const ProfileSettingsModal = ({ user, onClose }) => {
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
       onClick={onClose}
     >
-      
-      {/* METALLIC GLASS UPGRADE */}
       <div 
-        className="bg-gradient-to-br from-[#1a1d24]/95 to-[#090a0f]/95 backdrop-blur-3xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl w-full max-w-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] overflow-hidden flex flex-col md:flex-row relative"
+        className="bg-gradient-to-br from-[#1a1d24]/95 to-[#090a0f]/95 backdrop-blur-3xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-[2rem] w-full max-w-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] overflow-hidden flex flex-col md:flex-row relative"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent z-50" />
 
-        {/* Sidebar */}
         <div className="w-full md:w-1/3 bg-[#030712]/40 backdrop-blur-md border-b md:border-b-0 md:border-r border-emerald-900/40 p-6 flex flex-col space-y-3 relative z-10">
           <h3 className="text-emerald-500 font-mono text-[10px] font-bold uppercase tracking-widest mb-2 px-2 drop-shadow-sm">System Settings</h3>
           
@@ -126,8 +154,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
           </button>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 p-8 relative flex flex-col min-h-[400px] z-10">
+        <div className="flex-1 p-8 relative flex flex-col min-h-[450px] z-10">
           
           <button 
             onClick={onClose} 
@@ -137,7 +164,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
           </button>
 
           {activeTab === 'identity' && (
-            <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
+            <div className="space-y-4 animate-fade-in flex-1 flex flex-col">
               <div className="border-b border-emerald-900/30 pb-4 mb-2"> 
                 <h2 className="text-xl font-bold text-white mb-1 tracking-widest uppercase drop-shadow-md">Network Identity</h2>
                 <p className="text-xs text-emerald-600 font-mono tracking-widest uppercase">Customize how you appear on the ledger.</p>
@@ -149,33 +176,69 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                   <img 
                     src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
                     alt="Preview" 
-                    className="relative w-20 h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] object-cover shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]" 
+                    className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] object-cover shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]" 
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-2 drop-shadow-sm">Avatar URL</label>
+                  <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-1.5 drop-shadow-sm">Avatar URL</label>
                   <input 
                     type="text" 
                     value={photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-3 outline-none focus:border-emerald-500/80 transition-colors truncate placeholder-emerald-900/60"
+                    className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500/80 transition-colors truncate placeholder-emerald-900/60"
                   />
                 </div>
               </div>
 
-              <div className="mt-2">
-                <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-2 drop-shadow-sm">Codename (Nickname)</label>
-                <input 
-                  type="text" 
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Hacker"
-                  className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-3 outline-none focus:border-emerald-500/80 transition-colors placeholder-emerald-900/60"
-                />
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-1.5 drop-shadow-sm">Codename</label>
+                  <input 
+                    type="text" 
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Hacker"
+                    className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500/80 transition-colors placeholder-emerald-900/60"
+                  />
+                </div>
+
+                {/* NEW USERNAME FIELD */}
+                <div className="flex-1">
+                  <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-1.5 drop-shadow-sm">Username</label>
+                  <div className="relative">
+                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-700" />
+                    <input 
+                      type="text" 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                      placeholder="operator"
+                      className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-emerald-500/80 transition-colors placeholder-emerald-900/60"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-auto pt-6">
+              <div className="mt-2 bg-[#030712]/40 border border-emerald-900/30 p-4 rounded-xl flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 mb-1">
+                    {isPublic ? <Eye className="w-4 h-4 text-emerald-400" /> : <EyeOff className="w-4 h-4 text-slate-500" />}
+                    <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-widest font-bold">Public Telemetry</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider max-w-[200px]">
+                    {isPublic ? "Your stats and rank are visible to other operators." : "Your profile is hidden from leaderboards."}
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => setIsPublic(!isPublic)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out cursor-pointer shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] ${isPublic ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                >
+                  <div className={`w-4 h-4 bg-[#030712] rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${isPublic ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
+              <div className="mt-auto pt-4">
                 <button 
                   onClick={handleUpdateProfile}
                   disabled={isSaving}
