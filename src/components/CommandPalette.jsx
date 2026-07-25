@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Search, Zap, Users, Disc, BarChart2, DatabaseBackup, User, LogOut, Terminal, ChevronRight, AtSign, Loader2 } from 'lucide-react';
+import { Search, Zap, Users, Disc, BarChart2, DatabaseBackup, User, LogOut, Terminal, ChevronRight, AtSign, Loader2, Bug } from 'lucide-react';
 
 const CommandPalette = ({ 
   setCurrentView, 
@@ -16,12 +16,10 @@ const CommandPalette = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
 
-  // User Search States
-  const [allPublicUsers, setAllPublicUsers] = useState(null); // Cache to avoid over-querying Firebase
+  const [allPublicUsers, setAllPublicUsers] = useState(null); 
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
-  // The Command Library
   const commands = [
     { id: 'focus', icon: Zap, label: 'Access Focus Node', action: () => setCurrentView('focus'), category: 'Navigation' },
     { id: 'groups', icon: Users, label: 'Access Groups Matrix', action: () => setCurrentView('groups'), category: 'Navigation' },
@@ -33,19 +31,17 @@ const CommandPalette = ({
     { id: 'signout', icon: LogOut, label: 'Terminate Connection (Sign Out)', action: () => setIsSignOutModalOpen(true), category: 'Danger' },
   ];
 
-  // Determine Mode
-  const isUserMode = searchQuery.startsWith('@');
-  const userSearchString = isUserMode ? searchQuery.slice(1).toLowerCase() : '';
+  const isUserMode = (searchQuery || "").startsWith('@');
+  const userSearchString = isUserMode ? (searchQuery || "").slice(1).toLowerCase() : '';
 
-  // Filter commands based on search query
-  const filteredCommands = commands.filter(cmd => 
-    cmd.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    cmd.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCommands = commands.filter(cmd => {
+    const q = searchQuery || "";
+    return (cmd.label || "").toLowerCase().includes(q.toLowerCase()) || 
+           (cmd.category || "").toLowerCase().includes(q.toLowerCase());
+  });
 
   const activeListLength = isUserMode ? filteredUsers.length : filteredCommands.length;
 
-  // Global Shortcut Listener
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -57,7 +53,6 @@ const CommandPalette = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Reset state when opened/closed
   useEffect(() => {
     if (isOpen) {
       setQuery('');
@@ -66,7 +61,6 @@ const CommandPalette = ({
     }
   }, [isOpen]);
 
-  // Handle User Search Logic
   useEffect(() => {
     if (!isUserMode) return;
 
@@ -75,7 +69,6 @@ const CommandPalette = ({
       try {
         let usersToFilter = allPublicUsers;
         
-        // Only hit Firebase once per session to grab the global directory
         if (!usersToFilter) {
           const q = query(collection(db, "users"), where("isPublic", "==", true));
           const snap = await getDocs(q);
@@ -83,12 +76,11 @@ const CommandPalette = ({
           setAllPublicUsers(usersToFilter);
         }
         
-        // Client-side text heuristic filtering
         const filtered = usersToFilter.filter(u => {
-          const usernameMatch = u.username && u.username.toLowerCase().includes(userSearchString);
-          const nameMatch = u.displayName && u.displayName.toLowerCase().includes(userSearchString);
-          return usernameMatch || nameMatch;
-        }).slice(0, 8); // Limit to top 8 matches to keep UI clean
+          const uname = u.username || "";
+          const dname = u.displayName || "";
+          return uname.toLowerCase().includes(userSearchString) || dname.toLowerCase().includes(userSearchString);
+        }).slice(0, 8); 
         
         setFilteredUsers(filtered);
       } catch (err) {
@@ -101,8 +93,6 @@ const CommandPalette = ({
     fetchUsers();
   }, [searchQuery, isUserMode, userSearchString, allPublicUsers]);
 
-
-  // Handle Internal Keyboard Navigation
   const handleModalKeyDown = (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -147,7 +137,6 @@ const CommandPalette = ({
       >
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent z-50" />
 
-        {/* Input Header */}
         <div className="flex items-center px-4 py-4 border-b border-emerald-900/40 bg-[#030712]/40 relative z-10">
           <Terminal className="w-5 h-5 text-emerald-500 shrink-0 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
           <input
@@ -166,11 +155,9 @@ const CommandPalette = ({
           </div>
         </div>
 
-        {/* Results List */}
         <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1 relative z-10">
           
           {isUserMode ? (
-             // --- USER SEARCH MATRIX ---
              isSearchingUsers && filteredUsers.length === 0 ? (
                 <div className="py-12 text-center flex flex-col items-center justify-center text-emerald-700/50 font-mono">
                   <Loader2 className="w-8 h-8 mb-3 animate-spin drop-shadow-sm" />
@@ -184,6 +171,9 @@ const CommandPalette = ({
              ) : (
                filteredUsers.map((usr, index) => {
                  const isSelected = index === selectedIndex;
+                 const usrPhoto = String(usr?.photoURL || "");
+                 const isPlaceholder = !usrPhoto || usrPhoto.includes('dicebear');
+
                  return (
                    <button
                      key={usr.id}
@@ -199,11 +189,17 @@ const CommandPalette = ({
                      }`}
                    >
                      <div className="flex items-center gap-4">
-                       <img 
-                         src={usr.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
-                         alt="Avatar" 
-                         className={`w-8 h-8 rounded-full border ${isSelected ? 'border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'border-emerald-900/50'}`}
-                       />
+                       {isPlaceholder ? (
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-[#090a0f] shrink-0 border ${isSelected ? 'border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'border-emerald-900/50'}`}>
+                              <Bug className={`w-4 h-4 ${isSelected ? 'text-emerald-400' : 'text-emerald-700'}`} />
+                          </div>
+                       ) : (
+                          <img 
+                            src={usrPhoto} 
+                            alt="Avatar" 
+                            className={`w-8 h-8 rounded-full object-cover shrink-0 border ${isSelected ? 'border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'border-emerald-900/50'}`}
+                          />
+                       )}
                        <div className="flex flex-col items-start">
                           <span className={`text-sm font-bold ${isSelected ? 'text-emerald-100' : 'text-emerald-500/80'}`}>{usr.displayName}</span>
                           <span className={`text-[10px] flex items-center ${isSelected ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -224,7 +220,6 @@ const CommandPalette = ({
                })
              )
           ) : (
-            // --- STANDARD COMMAND MATRIX ---
             filteredCommands.length === 0 ? (
               <div className="py-12 text-center flex flex-col items-center justify-center text-emerald-700/50 font-mono">
                 <Search className="w-8 h-8 mb-3 drop-shadow-sm opacity-50" />
@@ -272,7 +267,6 @@ const CommandPalette = ({
           )}
         </div>
         
-        {/* Footer Hint */}
         <div className="px-4 py-3 border-t border-emerald-900/30 bg-[#030712]/60 flex items-center justify-between font-mono text-[10px] text-emerald-700 uppercase tracking-widest relative z-10">
             <span>Use ↑↓ arrows to navigate</span>
             <span>↵ Enter to execute</span>

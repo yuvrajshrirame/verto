@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { X, Trophy, Users, Zap, Activity, EyeOff } from 'lucide-react';
+import { X, Trophy, Users, Zap, Activity, EyeOff, Bug } from 'lucide-react';
 
 const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
   const [profileData, setProfileData] = useState(null);
@@ -9,7 +9,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPrivate, setIsPrivate] = useState(false);
 
-  // Helper to determine rank based on total XP
   const getFocusTier = (xp) => {
     if (xp < 100) return 'Initiate';
     if (xp < 500) return 'Novice';
@@ -29,11 +28,10 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
           setIsLoading(false); return;
         }
 
-        // 1. Fetch User Identity & Privacy
         const userDoc = await getDoc(doc(db, "users", uid));
         let userData = { 
           displayName: uid === currentUser.uid ? (currentUser.displayName || "Operator") : "Unknown Operator", 
-          photoURL: uid === currentUser.uid ? (currentUser.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker") : "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker", 
+          photoURL: uid === currentUser.uid ? (currentUser.photoURL || "") : "", 
           username: `operator_${uid.substring(0,4)}`,
           isPublic: true 
         };
@@ -50,7 +48,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
           return;
         }
 
-        // 2. Fetch ONLY this specific user's sessions to bypass Firebase Security blocks
         const userSessionsQuery = query(collection(db, "sessions"), where("uid", "==", uid));
         const userSessionsSnap = await getDocs(userSessionsQuery);
         
@@ -68,14 +65,12 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
           nodeMap[task] = (nodeMap[task] || 0) + (isNaN(rawDur) ? 0 : rawDur);
         });
 
-        // 3. Calculate Group Rank dynamically
         let groupRank = '-';
         if (groupId) {
           const groupDoc = await getDoc(doc(db, "guilds", groupId));
           if (groupDoc.exists()) {
             const members = groupDoc.data().members || [];
             
-            // Fetch sessions just for group members (safely limited by "in" query size)
             if (members.length > 0 && members.includes(uid)) {
                const membersQuery = query(collection(db, "sessions"), where("uid", "in", members.slice(0, 10)));
                const membersSnap = await getDocs(membersQuery);
@@ -87,7 +82,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
                  groupXpMap[mUid] = (groupXpMap[mUid] || 0) + (isNaN(mXp) ? 0 : mXp);
                });
 
-               // Ensure our target user is mapped even if they have 0 sessions
                groupXpMap[uid] = userTotalXp;
 
                const groupXpList = Object.entries(groupXpMap).map(([mUid, mXp]) => ({ uid: mUid, xp: mXp })).sort((a, b) => b.xp - a.xp);
@@ -97,7 +91,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
           }
         }
 
-        // 4. Calculate Top Nodes
         const topNodes = Object.entries(nodeMap)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 3)
@@ -121,6 +114,9 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
     if (h > 0) return `${h}h ${m}m`;
     return `${m}m`;
   };
+
+  const photo = String(profileData?.photoURL || "");
+  const isPlaceholder = !photo || photo.includes('dicebear');
 
   return (
     <div 
@@ -149,15 +145,22 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
         ) : (
           <div className="p-8">
             <div className="flex flex-col items-center text-center mb-8 relative z-10">
-              <img 
-                src={profileData?.photoURL} 
-                alt="Avatar" 
-                className="w-24 h-24 rounded-2xl border-2 border-emerald-500/40 object-cover shadow-[0_0_20px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)] mb-4 bg-[#090a0f]"
-              />
+              
+              {isPlaceholder ? (
+                  <div className="w-24 h-24 rounded-2xl border-2 border-emerald-500/40 flex items-center justify-center bg-[#090a0f] shadow-[0_0_20px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)] mb-4">
+                      <Bug className="w-12 h-12 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                  </div>
+              ) : (
+                  <img 
+                    src={photo} 
+                    alt="Avatar" 
+                    className="w-24 h-24 rounded-2xl border-2 border-emerald-500/40 object-cover shadow-[0_0_20px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)] mb-4 bg-[#090a0f]"
+                  />
+              )}
+
               <h2 className="text-2xl font-bold text-white tracking-widest uppercase drop-shadow-md">
                 {profileData?.displayName}
               </h2>
-              {/* BRAND NEW USERNAME BADGE */}
               <span className="text-xs text-emerald-400 font-mono tracking-widest lowercase bg-[#030712]/60 px-3 py-1.5 rounded-lg border border-emerald-900/50 mt-2 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 @{profileData?.username || `operator_${profileData?.uid?.substring(0,4)}`}
               </span>
@@ -174,7 +177,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
             ) : (
               <div className="space-y-6">
                 
-                {/* Ranks & XP */}
                 <div className="flex gap-4">
                   <div className="flex-1 bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-900/50 border-t-emerald-500/30 rounded-2xl p-4 flex flex-col items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-emerald-500/50 transition-colors">
                     <Trophy className="w-4 h-4 text-emerald-500 mb-1" />
@@ -191,7 +193,6 @@ const UserProfileModal = ({ profileContext, onClose, currentUser }) => {
                   )}
                 </div>
 
-                {/* Top Nodes */}
                 <div className="bg-[#030712]/60 border border-emerald-900/40 border-t-emerald-500/10 rounded-2xl p-5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
                   <div className="flex items-center gap-2 mb-4 border-b border-emerald-900/30 pb-2">
                     <Zap className="w-4 h-4 text-emerald-400" />

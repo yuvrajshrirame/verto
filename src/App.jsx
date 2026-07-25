@@ -12,7 +12,7 @@ import GroupDashboard from "./components/GroupDashboard";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CommandPalette from "./components/CommandPalette"; 
 import UserProfileModal from "./components/UserProfileModal"; 
-import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
+import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2, Bug } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
@@ -104,6 +104,9 @@ function App() {
     { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
   ];
 
+  const userPhoto = String(user?.photoURL || "");
+  const isPlaceholder = !userPhoto || userPhoto.includes('dicebear');
+
   return (
     <>
       <AnimatedBackground />
@@ -140,12 +143,18 @@ function App() {
 
           <div className="p-4 border-t border-emerald-900/30">
              <div className="flex flex-col md:flex-row items-center md:space-x-3 p-2">
-                <img 
-                  onClick={() => setIsProfileModalOpen(true)} 
-                  src={user.photoURL} 
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full border border-emerald-900/50 cursor-pointer hover:border-emerald-400 transition-colors shrink-0" 
-                />
+                {isPlaceholder ? (
+                  <div onClick={() => setIsProfileModalOpen(true)} className="w-8 h-8 rounded-full border border-emerald-900/50 flex items-center justify-center bg-[#090a0f] cursor-pointer hover:border-emerald-400 transition-colors shrink-0">
+                    <Bug className="w-4 h-4 text-emerald-500" />
+                  </div>
+                ) : (
+                  <img 
+                    onClick={() => setIsProfileModalOpen(true)} 
+                    src={userPhoto} 
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full border border-emerald-900/50 cursor-pointer hover:border-emerald-400 transition-colors shrink-0 object-cover" 
+                  />
+                )}
                 <div className="hidden md:flex flex-col flex-1 truncate">
                   <span className="text-white text-xs font-medium truncate">{user.displayName?.split(" ")[0] || "Hacker"}</span>
                   <button onClick={() => setIsSignOutModalOpen(true)} className="text-emerald-700 hover:text-emerald-400 text-[9px] font-mono uppercase tracking-widest text-left mt-0.5 cursor-pointer">
@@ -213,7 +222,7 @@ function App() {
           setIsProfileModalOpen={setIsProfileModalOpen}
           setIsSignOutModalOpen={setIsSignOutModalOpen}
           initAudio={redirectToSpotifyAuth}
-          setViewingProfile={setViewingProfile} // <-- PASSED DOWN TO TRIGGER USER SEARCH
+          setViewingProfile={setViewingProfile} 
         />
 
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}

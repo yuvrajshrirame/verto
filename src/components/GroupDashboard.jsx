@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Users, Crosshair, LogIn, Trophy, Activity, ShieldAlert, Key, Edit3, Trash2, Check, LogOut, UserX } from 'lucide-react';
+import { Users, Crosshair, LogIn, Trophy, Activity, ShieldAlert, Key, Edit3, Trash2, Check, LogOut, UserX, Bug } from 'lucide-react';
 
-// NEW: Accept onViewProfile prop
 const GroupDashboard = ({ user, onViewProfile }) => {
   const [userGroups, setUserGroups] = useState([]);
   const [activeGroup, setActiveGroup] = useState(null);
@@ -52,7 +51,7 @@ const GroupDashboard = ({ user, onViewProfile }) => {
         const catMap = {};
 
         activeGroup.members.forEach(memberUid => {
-            usersMap[memberUid] = { uid: memberUid, name: "Unknown Operator", photo: "https://via.placeholder.com/40", totalXp: 0 };
+            usersMap[memberUid] = { uid: memberUid, name: "Unknown Operator", photo: "", totalXp: 0 };
         });
 
         snapshot.forEach(docSnap => {
@@ -185,7 +184,6 @@ const GroupDashboard = ({ user, onViewProfile }) => {
   return (
     <div className="w-full flex flex-col gap-6 animate-fade-in pb-10">
       
-      {/* HEADER ROW */}
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 bg-gradient-to-br from-[#1a1d24]/60 to-[#090a0f]/80 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent" />
@@ -245,7 +243,6 @@ const GroupDashboard = ({ user, onViewProfile }) => {
         </div>
       )}
 
-      {/* GROUP DATA VIEW */}
       {activeGroup && (
         <div className="bg-gradient-to-br from-[#1a1d24]/60 to-[#090a0f]/80 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl p-6 md:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
@@ -307,7 +304,6 @@ const GroupDashboard = ({ user, onViewProfile }) => {
           ) : (
             <div className="flex flex-col md:flex-row gap-10 relative z-10">
               
-              {/* LEADERBOARD */}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
@@ -322,44 +318,55 @@ const GroupDashboard = ({ user, onViewProfile }) => {
                   {groupStats.leaderboard.length === 0 ? (
                     <p className="text-emerald-700 font-mono text-xs">No telemetry recorded yet.</p>
                   ) : (
-                    groupStats.leaderboard.map((member, idx) => (
-                      <div 
-                        key={member.uid} 
-                        // NEW: Make the card clickable to trigger Profile Modal
-                        onClick={() => onViewProfile && onViewProfile({ uid: member.uid, groupId: activeGroup.id })}
-                        className={`flex items-center justify-between p-4 rounded-2xl border backdrop-blur-sm cursor-pointer hover:scale-[1.02] transition-all duration-300 ${member.uid === user.uid ? 'bg-gradient-to-r from-emerald-500/10 to-transparent border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1),inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-[#090a0f]/60 border-emerald-900/30 hover:border-emerald-500/40 shadow-[0_2px_8px_rgba(0,0,0,0.2)]'}`}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <span className={`font-mono font-bold w-6 text-center text-lg ${idx === 0 && member.totalXp > 0 ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]' : idx === 1 && member.totalXp > 0 ? 'text-slate-300 drop-shadow-sm' : idx === 2 && member.totalXp > 0 ? 'text-amber-700 drop-shadow-sm' : 'text-emerald-800 text-sm'}`}>#{idx + 1}</span>
-                          <img src={member.photo} alt="avatar" className="w-10 h-10 rounded-full border border-emerald-900/50 object-cover shadow-[0_0_10px_rgba(0,0,0,0.5)]" />
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm text-emerald-100 truncate max-w-[120px] sm:max-w-[150px] drop-shadow-sm">
-                                {member.uid === user.uid && user.displayName ? user.displayName.split(" ")[0] : member.name}
-                            </span>
-                            {member.uid === activeGroup.admin && <span className="text-[9px] text-amber-500/80 font-mono uppercase tracking-widest mt-0.5">Admin</span>}
+                    groupStats.leaderboard.map((member, idx) => {
+                      const photo = String(member?.photo || "");
+                      const isPlaceholder = !photo || photo.includes('dicebear') || photo.includes('placeholder');
+
+                      return (
+                        <div 
+                          key={member.uid} 
+                          onClick={() => onViewProfile && onViewProfile({ uid: member.uid, groupId: activeGroup.id })}
+                          className={`flex items-center justify-between p-4 rounded-2xl border backdrop-blur-sm cursor-pointer hover:scale-[1.02] transition-all duration-300 ${member.uid === user.uid ? 'bg-gradient-to-r from-emerald-500/10 to-transparent border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1),inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-[#090a0f]/60 border-emerald-900/30 hover:border-emerald-500/40 shadow-[0_2px_8px_rgba(0,0,0,0.2)]'}`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <span className={`font-mono font-bold w-6 text-center text-lg ${idx === 0 && member.totalXp > 0 ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]' : idx === 1 && member.totalXp > 0 ? 'text-slate-300 drop-shadow-sm' : idx === 2 && member.totalXp > 0 ? 'text-amber-700 drop-shadow-sm' : 'text-emerald-800 text-sm'}`}>#{idx + 1}</span>
+                            
+                            {isPlaceholder ? (
+                                <div className="w-10 h-10 rounded-full border border-emerald-900/50 flex items-center justify-center bg-[#090a0f] shadow-[0_0_10px_rgba(0,0,0,0.5)] shrink-0">
+                                    <Bug className="w-5 h-5 text-emerald-500" />
+                                </div>
+                            ) : (
+                                <img src={photo} alt="avatar" className="w-10 h-10 rounded-full border border-emerald-900/50 object-cover shadow-[0_0_10px_rgba(0,0,0,0.5)] shrink-0" />
+                            )}
+
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm text-emerald-100 truncate max-w-[120px] sm:max-w-[150px] drop-shadow-sm">
+                                  {member.uid === user.uid && user.displayName ? user.displayName.split(" ")[0] : member.name}
+                              </span>
+                              {member.uid === activeGroup.admin && <span className="text-[9px] text-amber-500/80 font-mono uppercase tracking-widest mt-0.5">Admin</span>}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                              <span className="font-mono font-bold text-emerald-300 text-lg tracking-wider drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]">{member.totalXp} XP</span>
+                              
+                              {activeGroup.admin === user.uid && member.uid !== user.uid && (
+                                  <button 
+                                      onClick={(e) => { e.stopPropagation(); handleKickMember(member.uid); }} 
+                                      className="p-1.5 bg-[#030712]/50 rounded-lg border border-red-900/30 text-red-900/50 hover:text-red-400 hover:border-red-500/50 transition-colors cursor-pointer shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]"
+                                      title="Eject Operator"
+                                  >
+                                      <UserX className="w-4 h-4" />
+                                  </button>
+                              )}
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4">
-                            <span className="font-mono font-bold text-emerald-300 text-lg tracking-wider drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]">{member.totalXp} XP</span>
-                            
-                            {activeGroup.admin === user.uid && member.uid !== user.uid && (
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); handleKickMember(member.uid); }} 
-                                    className="p-1.5 bg-[#030712]/50 rounded-lg border border-red-900/30 text-red-900/50 hover:text-red-400 hover:border-red-500/50 transition-colors cursor-pointer shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]"
-                                    title="Eject Operator"
-                                >
-                                    <UserX className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
 
-              {/* NETWORK DIAGNOSTICS */}
               <div className="flex-1 border-t md:border-t-0 md:border-l border-emerald-900/30 pt-8 md:pt-0 md:pl-10">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="p-1.5 bg-[#030712]/50 rounded border border-emerald-900/30 shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]">
@@ -375,7 +382,6 @@ const GroupDashboard = ({ user, onViewProfile }) => {
                     Object.entries(groupStats.categories).map(([uid, data]) => (
                       <div 
                         key={uid} 
-                        // NEW: Make the diagnostics card clickable too
                         onClick={() => onViewProfile && onViewProfile({ uid, groupId: activeGroup.id })}
                         className="bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/40 border-t-emerald-500/10 border-l-emerald-500/10 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.02)] cursor-pointer hover:border-emerald-500/40 transition-colors"
                       >

@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { updateProfile, deleteUser } from 'firebase/auth';
 import { collection, query, where, getDocs, writeBatch, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { X, User, Database, AlertOctagon, Save, Download, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff, AtSign } from 'lucide-react';
+import { X, User, Database, AlertOctagon, Save, Download, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff, AtSign, Bug } from 'lucide-react';
 
 const ProfileSettingsModal = ({ user, onClose }) => {
   const [activeTab, setActiveTab] = useState('identity');
   const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
-  const [username, setUsername] = useState(''); // NEW: Custom Username
+  
+  const safeUserPhoto = String(user?.photoURL || "");
+  const initialPhoto = safeUserPhoto.includes('dicebear') ? '' : safeUserPhoto;
+  
+  const [photoURL, setPhotoURL] = useState(initialPhoto);
+  const [username, setUsername] = useState(''); 
   const [isPublic, setIsPublic] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
@@ -21,7 +25,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
         if (data.isPublic !== undefined) setIsPublic(data.isPublic);
         if (data.username) setUsername(data.username);
       } else {
-        // Generate a random default username if they don't have one
         setUsername(`operator_${Math.floor(Math.random() * 9000) + 1000}`);
       }
     };
@@ -43,16 +46,14 @@ const ProfileSettingsModal = ({ user, onClose }) => {
     setIsSaving(true);
     try {
       const finalName = displayName.trim() || "Hacker";
-      const finalPhoto = photoURL.trim() || "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker";
+      const finalPhoto = photoURL.trim() || ""; 
       const finalUsername = username.trim().toLowerCase().replace(/\s+/g, '') || `operator_${Math.floor(Math.random() * 9000) + 1000}`;
 
-      // 1. Update Auth Profile
       await updateProfile(auth.currentUser, {
         displayName: finalName,
         photoURL: finalPhoto
       });
 
-      // 2. Update Global Users Collection (Includes Username)
       await setDoc(doc(db, 'users', user.uid), {
         displayName: finalName,
         photoURL: finalPhoto,
@@ -124,6 +125,9 @@ const ProfileSettingsModal = ({ user, onClose }) => {
     }
   };
 
+  const currentPhoto = String(photoURL || "");
+  const isPlaceholder = !currentPhoto || currentPhoto.includes('dicebear');
+
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
@@ -173,11 +177,17 @@ const ProfileSettingsModal = ({ user, onClose }) => {
               <div className="flex items-center space-x-5">
                 <div className="relative">
                   <div className="absolute inset-0 bg-emerald-500 blur-md opacity-20 rounded-full" />
-                  <img 
-                    src={photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker'} 
-                    alt="Preview" 
-                    className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] object-cover shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]" 
-                  />
+                  {isPlaceholder ? (
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] flex items-center justify-center shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]">
+                          <Bug className="w-8 h-8 text-emerald-500 drop-shadow-md" />
+                      </div>
+                  ) : (
+                      <img 
+                        src={currentPhoto} 
+                        alt="Preview" 
+                        className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-emerald-500/40 bg-[#090a0f] object-cover shrink-0 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_2px_4px_rgba(255,255,255,0.1)]" 
+                      />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-1.5 drop-shadow-sm">Avatar URL</label>
@@ -185,7 +195,7 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                     type="text" 
                     value={photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
-                    placeholder="https://..."
+                    placeholder="Leave empty for Bug icon..."
                     className="w-full bg-[#030712]/80 text-emerald-300 font-mono text-sm border border-emerald-900/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500/80 transition-colors truncate placeholder-emerald-900/60"
                   />
                 </div>
@@ -203,7 +213,6 @@ const ProfileSettingsModal = ({ user, onClose }) => {
                   />
                 </div>
 
-                {/* NEW USERNAME FIELD */}
                 <div className="flex-1">
                   <label className="block text-[10px] font-mono text-emerald-500 uppercase tracking-widest mb-1.5 drop-shadow-sm">Username</label>
                   <div className="relative">
