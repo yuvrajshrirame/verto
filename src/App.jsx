@@ -8,7 +8,7 @@ import DailySyncModal from "./components/DailySyncModal";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
-import GroupDashboard from "./components/GroupDashboard"; // UPDATED IMPORT
+import GroupDashboard from "./components/GroupDashboard"; 
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
@@ -97,7 +97,7 @@ function App() {
   // Workspace Navigation Items
   const navItems = [
     { id: 'focus', icon: Zap, label: 'FOCUS NODE' },
-    { id: 'groups', icon: Users, label: 'GROUPS' }, // UPDATED LABEL & ID
+    { id: 'groups', icon: Users, label: 'GROUPS' }, 
     { id: 'audio', icon: Disc, label: 'AUDIO ENGINE' },
     { id: 'analytics', icon: BarChart2, label: 'ANALYTICS CORE' },
   ];
@@ -189,7 +189,6 @@ function App() {
                 </div>
               )}
 
-              {/* UPDATED COMPONENT RENDER */}
               {currentView === 'groups' && <GroupDashboard user={user} />}
               
               {currentView === 'audio' && (
@@ -208,46 +207,55 @@ function App() {
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
         
-        {/* Sign Out Modal */}
+        {/* === METALLIC UPGRADED SIGN OUT MODAL === */}
         {isSignOutModalOpen && (
           <div 
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in px-4"
             onClick={() => setIsSignOutModalOpen(false)}
           >
             <div 
-              className="bg-[#030712] border border-emerald-500/30 p-6 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.1)] w-full max-w-sm relative transform scale-100 transition-transform"
+              className="bg-gradient-to-br from-[#1a1d24]/90 to-[#090a0f]/95 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] w-full max-w-sm relative transform scale-100 transition-transform overflow-hidden p-8"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Top Glint */}
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent z-50" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-2 bg-emerald-500 blur-xl opacity-20" />
+
               <button 
                 onClick={() => setIsSignOutModalOpen(false)} 
-                className="absolute top-4 right-4 text-emerald-700 hover:text-emerald-400 transition-colors cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-xl bg-[#090a0f]/50 border border-emerald-900/50 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition-all cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] z-10"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
       
-              <div className="flex flex-col items-center text-center mt-2">
-                <div className="p-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-                  <LogOut className="w-8 h-8 text-emerald-400" />
+              <div className="flex flex-col items-center text-center mt-2 relative z-10">
+                
+                {/* Machined Icon Container */}
+                <div className="p-4 rounded-2xl mb-6 bg-[#090a0f]/80 border border-emerald-900/50 border-t-emerald-500/30 border-l-emerald-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                  <LogOut className="w-8 h-8 text-emerald-400 drop-shadow-md" />
                 </div>
                 
-                <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase">
+                <h2 className="text-xl font-mono font-bold text-white tracking-widest mb-2 uppercase drop-shadow-md">
                   Sign Out
                 </h2>
                 
-                <p className="text-emerald-700/80 text-xs font-mono mb-8">
-                  Are you sure you want to sign out?
+                <p className="text-emerald-600/80 text-xs font-mono mb-8 uppercase tracking-wider">
+                  Disconnect from the mainframe?
                 </p>
                 
-                <div className="flex w-full space-x-3">
+                <div className="flex w-full gap-4">
+                  {/* Frosted Cancel Button */}
                   <button 
                     onClick={() => setIsSignOutModalOpen(false)} 
-                    className="flex-1 py-2.5 rounded-lg border border-emerald-900/50 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                    className="flex-1 py-3.5 rounded-xl bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/50 border-t-emerald-500/20 border-l-emerald-500/20 text-emerald-500 font-mono font-bold text-xs tracking-wider hover:text-emerald-400 hover:border-emerald-400/50 transition-all cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.05)] uppercase hover:scale-105"
                   >
                     CANCEL
                   </button>
+                  
+                  {/* Metallic Red Confirm Button */}
                   <button 
                     onClick={executeSignOut} 
-                    className="flex-1 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs tracking-wider hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all cursor-pointer"
+                    className="flex-1 py-3.5 rounded-xl bg-gradient-to-b from-red-500/20 to-red-600/10 border border-red-500/40 border-t-red-400/40 text-red-400 font-mono font-bold text-xs tracking-widest hover:from-red-500/30 transition-all cursor-pointer shadow-[0_4px_15px_rgba(239,68,68,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] uppercase hover:scale-105"
                   >
                     SIGN OUT
                   </button>
