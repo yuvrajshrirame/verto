@@ -10,6 +10,7 @@ import ProfileSettingsModal from "./components/ProfileSettingsModal";
 import SpotifyEngine from "./components/SpotifyEngine";
 import GroupDashboard from "./components/GroupDashboard"; 
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import CommandPalette from "./components/CommandPalette"; // <-- NEW IMPORT
 import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2 } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
@@ -112,7 +113,7 @@ function App() {
         <aside className="w-16 md:w-64 bg-[#030712]/80 backdrop-blur-xl border-r border-emerald-900/30 flex flex-col justify-between shrink-0 transition-all duration-300">
           <div>
             {/* Logo */}
-            <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-emerald-900/30">
+            <div className="h-20 flex items-center justify-center md:justify-start md:px-8 border-b border-emerald-900/30 relative">
               <h1 className="text-xl md:text-2xl font-bold text-white tracking-wider hidden md:block">
                 VERTO<span className="text-emerald-500">.</span>
               </h1>
@@ -162,16 +163,25 @@ function App() {
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           
           {/* Top Utility Bar (Sync & Spotify Connect) */}
-          <header className="h-16 shrink-0 border-b border-emerald-900/30 flex items-center justify-end px-6 space-x-4 bg-[#030712]/50 backdrop-blur-sm">
-            {!spotifyToken && (
-              <button onClick={redirectToSpotifyAuth} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
-                <span>{spotifyExpired ? "AUDIO EXPIRED" : "INIT AUDIO"}</span>
+          <header className="h-16 shrink-0 border-b border-emerald-900/30 flex items-center justify-between px-6 bg-[#030712]/50 backdrop-blur-sm">
+            <div className="hidden md:flex items-center space-x-2 text-[10px] font-mono text-emerald-700 border border-emerald-900/30 px-3 py-1.5 rounded-lg bg-[#090a0f]/50">
+              <span className="text-slate-400">Ctrl + K</span>
+              <span>/</span>
+              <span className="text-slate-400">Cmd + K</span>
+              <span className="ml-1 uppercase tracking-widest">for Command Palette</span>
+            </div>
+
+            <div className="flex items-center space-x-4 ml-auto">
+              {!spotifyToken && (
+                <button onClick={redirectToSpotifyAuth} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
+                  <span>{spotifyExpired ? "AUDIO EXPIRED" : "INIT AUDIO"}</span>
+                </button>
+              )}
+              <button onClick={() => setIsSyncModalOpen(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
+                <DatabaseBackup className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">DAILY SYNC</span>
               </button>
-            )}
-            <button onClick={() => setIsSyncModalOpen(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-500/20 transition-all cursor-pointer">
-              <DatabaseBackup className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">DAILY SYNC</span>
-            </button>
+            </div>
           </header>
 
           {/* Dynamic View Injection */}
@@ -203,6 +213,15 @@ function App() {
           </div>
         </main>
 
+        {/* === GLOBAL COMMAND PALETTE === */}
+        <CommandPalette 
+          setCurrentView={setCurrentView}
+          setIsSyncModalOpen={setIsSyncModalOpen}
+          setIsProfileModalOpen={setIsProfileModalOpen}
+          setIsSignOutModalOpen={setIsSignOutModalOpen}
+          initAudio={redirectToSpotifyAuth}
+        />
+
         {/* === MODALS === */}
         {isSyncModalOpen && <DailySyncModal user={user} onClose={() => setIsSyncModalOpen(false)} onAuthError={triggerAuthError} />}
         {isProfileModalOpen && <ProfileSettingsModal user={user} onClose={() => setIsProfileModalOpen(false)} />}
@@ -217,7 +236,6 @@ function App() {
               className="bg-gradient-to-br from-[#1a1d24]/90 to-[#090a0f]/95 backdrop-blur-2xl border border-emerald-900/50 border-t-emerald-400/30 border-l-emerald-400/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.1)] w-full max-w-sm relative transform scale-100 transition-transform overflow-hidden p-8"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Top Glint */}
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent z-50" />
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-2 bg-emerald-500 blur-xl opacity-20" />
 
@@ -229,8 +247,6 @@ function App() {
               </button>
       
               <div className="flex flex-col items-center text-center mt-2 relative z-10">
-                
-                {/* Machined Icon Container */}
                 <div className="p-4 rounded-2xl mb-6 bg-[#090a0f]/80 border border-emerald-900/50 border-t-emerald-500/30 border-l-emerald-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)]">
                   <LogOut className="w-8 h-8 text-emerald-400 drop-shadow-md" />
                 </div>
@@ -244,15 +260,12 @@ function App() {
                 </p>
                 
                 <div className="flex w-full gap-4">
-                  {/* Frosted Cancel Button */}
                   <button 
                     onClick={() => setIsSignOutModalOpen(false)} 
                     className="flex-1 py-3.5 rounded-xl bg-[#090a0f]/60 backdrop-blur-md border border-emerald-900/50 border-t-emerald-500/20 border-l-emerald-500/20 text-emerald-500 font-mono font-bold text-xs tracking-wider hover:text-emerald-400 hover:border-emerald-400/50 transition-all cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.05)] uppercase hover:scale-105"
                   >
                     CANCEL
                   </button>
-                  
-                  {/* Metallic Red Confirm Button */}
                   <button 
                     onClick={executeSignOut} 
                     className="flex-1 py-3.5 rounded-xl bg-gradient-to-b from-red-500/20 to-red-600/10 border border-red-500/40 border-t-red-400/40 text-red-400 font-mono font-bold text-xs tracking-widest hover:from-red-500/30 transition-all cursor-pointer shadow-[0_4px_15px_rgba(239,68,68,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] uppercase hover:scale-105"
