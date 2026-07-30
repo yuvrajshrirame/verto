@@ -22,23 +22,23 @@
 
 ## ✦ Table of Contents 🟩
 
-1. [Project Philosophy](#-project-philosophy)
-2. [System Architecture](#-system-architecture)
-3. [Core Modules & Features](#-core-modules--features)
-4. [The XP & Leveling Layer](#-the-xp--leveling-layer)
-5. [Audio Telemetry Pipeline](#-audio-telemetry-pipeline)
-6. [Firestore Database Schema](#-firestore-database-schema)
-7. [Component Tree](#-component-tree)
-8. [Component Reference (Deep Dive)](#-component-reference-deep-dive)
-9. [Environment Initialization](#-environment-initialization)
-10. [Installation & Deployment](#-installation--deployment)
-11. [Known Protocols, Failsafes & Quirks](#-known-protocols-failsafes--quirks)
-12. [Dead Code & Loose Ends](#-dead-code--loose-ends)
-13. [Security Notes](#-security-notes)
+1. [Project Philosophy](#project-philosophy)
+2. [System Architecture](#system-architecture)
+3. [Core Modules & Features](#core-modules--features)
+4. [The XP & Leveling Layer](#the-xp--leveling-layer)
+5. [Audio Telemetry Pipeline](#audio-telemetry-pipeline)
+6. [Firestore Database Schema](#firestore-database-schema)
+7. [Component Tree](#component-tree)
+8. [Component Reference (Deep Dive)](#component-reference-deep-dive)
+9. [Environment Initialization](#environment-initialization)
+10. [Installation & Deployment](#installation--deployment)
+11. [Known Protocols, Failsafes & Quirks](#known-protocols-failsafes--quirks)
+12. [Dead Code & Loose Ends](#dead-code--loose-ends)
+13. [Security Notes](#security-notes)
 
 ---
 
-## ✦ Project Philosophy 🟩
+## Project Philosophy
 
 **VERTO.** is a gamified deep-work tracker built as a single-page React app. Instead of a plain Pomodoro timer, it frames focus sessions as "Focus Nodes," converts logged time into XP, and layers social accountability on top via public leaderboards and small private "Groups" (internally called *guilds*). The whole UI leans into a strict cyber-editorial aesthetic — glassmorphic panels, monospace labels, emerald (`#10b981`) accents on a near-black (`#030712`) base — carried consistently across every screen, including error states and empty states.
 
@@ -46,26 +46,26 @@ There is no custom backend. Every piece of state lives in the browser or in Fire
 
 ---
 
-## ✦ System Architecture 🟩
+## System Architecture
 
 - **Frontend:** React 19 (`react` / `react-dom` ^19.2), bundled with Vite 8.
 - **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss` + `@import "tailwindcss"` in `src/index.css`) — no `tailwind.config.js` theme customization; the entire cyber-glass look is achieved with inline utility classes (arbitrary values, `backdrop-blur`, layered `shadow-[...]`, gradient borders) rather than design tokens.
 - **Database:** Firestore (NoSQL), read with a mix of one-shot `getDocs` calls and live `onSnapshot` listeners.
-- **Auth:** Firebase Auth, GitHub provider only (`GithubAuthProvider`), with the `repo` OAuth scope requested up front so the app can push commits on the user's behalf later (see [Daily Sync](#daily-sync-modal)).
+- **Auth:** Firebase Auth, GitHub provider only (`GithubAuthProvider`), with the `repo` OAuth scope requested up front so the app can push commits on the user's behalf later (see Daily Sync below).
 - **Charts:** Recharts (`BarChart`, `PieChart`) for the Analytics Core.
 - **Icons:** `lucide-react`.
-- **Routing:** `react-router-dom` is installed but **not used** — the whole app is a single `App.jsx` component that swaps between views with local state (`currentView`), not routes. See [Dead Code & Loose Ends](#-dead-code--loose-ends).
+- **Routing:** `react-router-dom` is installed but **not used** — the whole app is a single `App.jsx` component that swaps between views with local state (`currentView`), not routes. See [Dead Code & Loose Ends](#dead-code--loose-ends).
 
-There is no `firestore.rules` file in the repo, so security rules live outside this codebase (in the Firebase console) — see [Security Notes](#-security-notes).
+There is no `firestore.rules` file in the repo, so security rules live outside this codebase (in the Firebase console) — see [Security Notes](#security-notes).
 
 ---
 
-## ✦ Core Modules & Features 🟩
+## Core Modules & Features
 
-### ✦ Authentication & Session
+### Authentication & Session
 GitHub sign-in via a Firebase popup. On success, the GitHub OAuth access token is pulled out of the credential and stashed in `localStorage` (`github_token`) — this is what later authorizes the Daily Sync feature to write to the user's GitHub repos. Firebase's own `onAuthStateChanged` drives the `user` state for the rest of the app.
 
-### ✦ The Neural Timer Engine ("Focus Node")
+### The Neural Timer Engine ("Focus Node")
 A category-tagged stopwatch (not a fixed-length Pomodoro) that:
 - Anchors elapsed time to `Date.now()` rather than counting `setInterval` ticks, so backgrounded/throttled tabs don't cause the displayed timer to drift.
 - Hard-caps a single session at **4 hours (14,400s)**, at which point it auto-pauses and shows a warning.
@@ -73,46 +73,46 @@ A category-tagged stopwatch (not a fixed-length Pomodoro) that:
 - Persists as a **draggable floating widget** (via `createPortal` into `document.body`) whenever the user navigates away from the Focus tab while a session is running or has unsaved time — implemented as a second `return` branch inside `Timer.jsx` (`isBackground` prop), not a separate component.
 - Warns on tab close (`beforeunload`) if there's unsaved time.
 
-### ✦ Categories ("Focus Nodes")
+### Categories ("Focus Nodes")
 User-defined tags with a name, a preset color (7 swatches), and an icon (11 curated Lucide icons). Stored per-user in the `categories` collection and required before a session can be logged.
 
-### ✦ Activity Log & Global Leaderboard
+### Activity Log & Global Leaderboard
 A single tabbed panel (`Feed.jsx`):
 - **Activity Log** — a live (`onSnapshot`) list of the user's own sessions, editable (adjust logged minutes, which recalculates XP) and deletable inline.
-- **Leaderboard** — a one-shot aggregation across *every* session document in the database, grouped by `uid` and summed into total XP, sorted descending. This runs a full collection scan client-side — see [Known Protocols & Quirks](#-known-protocols-failsafes--quirks).
+- **Leaderboard** — a one-shot aggregation across *every* session document in the database, grouped by `uid` and summed into total XP, sorted descending. This runs a full collection scan client-side — see [Known Protocols, Failsafes & Quirks](#known-protocols-failsafes--quirks).
 - Both lists use **dynamically computed pagination**: an effect measures the available container height and divides by an assumed 80px row height to decide how many rows fit, rather than using a fixed page size.
 
-### ✦ Groups ("Guilds")
+### Groups ("Guilds")
 Small (max 10 member) accountability pods, stored in Firestore as `guilds` (the UI calls them "Groups" / "Networks," the schema still uses the original "guild" naming):
 - Create a group (random 6-character invite code) or join one by code.
 - Per-group leaderboard and a per-member category breakdown ("Network Diagnostics"), both computed client-side from a `where("uid", "in", members)` query — Firestore's `in` operator caps this at 10 values, which conveniently matches the 10-member group cap.
 - Admin-only controls: rename group, delete group, kick a member. Non-admins can leave.
 - Clicking any member opens their public profile card (`UserProfileModal`).
 
-### ✦ Analytics Core
+### Analytics Core
 Three linked visualizations built from the user's full session history (`AnalyticsDashboard.jsx`):
 - A **12-week (84-day) consistency heatmap**, clickable to drill into any day's per-category breakdown.
 - A **7-day bar chart** of minutes focused per day (Recharts `BarChart`).
 - A **category distribution donut chart** (Recharts `PieChart`) with a "TOTAL" readout in the center and a color-coded legend, using each category's saved color/icon.
 
-### ✦ Command Palette
+### Command Palette
 A `Cmd/Ctrl+K` overlay (`CommandPalette.jsx`) with two modes:
 - **Command mode** — fuzzy-filtered list of navigation and system actions (switch view, force a Daily Sync, open profile settings, initialize Spotify, sign out).
 - **User search mode** — typing `@` switches to searching the `users` collection (filtered to `isPublic == true`), letting you jump straight to any public operator's profile card.
 Both modes support full keyboard navigation (arrow keys + Enter).
 
-### ✦ Profile Settings
+### Profile Settings
 A three-tab modal (`ProfileSettingsModal.jsx`):
 - **Identity** — display name, avatar URL, username, and a public/private telemetry toggle that controls leaderboard/profile visibility.
 - **Data Export** — downloads all of the user's session documents as a raw JSON file.
 - **Danger Zone** — permanently deletes the user's `sessions` and `categories` documents (batched) and then deletes the Firebase Auth account itself, with a re-authentication error path handled explicitly.
 
-### ✦ Daily Sync Modal
+### Daily Sync Modal
 A GitHub-integration feature that aggregates the current day's *unsynced* sessions and commits a markdown log to a GitHub repo named `verto-activity` under the signed-in user's GitHub username, at `logs/YYYY-MM-DD.md`. It fetches the existing file (if any) via the GitHub Contents API to get its `sha`, then `PUT`s the merged content back using the `github_token` captured at login. A 401 from GitHub anywhere in this flow triggers a forced sign-out with an explanatory message, since it means the cached token has expired or been revoked.
 
 ---
 
-## ✦ The XP & Leveling Layer 🟩
+## The XP & Leveling Layer
 
 There are actually **two separate leveling systems in this codebase**, and neither of them is wired into the live app:
 
@@ -125,27 +125,27 @@ What actually drives the visible UI today is much simpler: **1 minute of focus =
 
 ---
 
-## ✦ Audio Telemetry Pipeline 🟩
+## Audio Telemetry Pipeline
 
 A custom Spotify integration so users never have to tab away to control music.
 
-### ✦ PKCE Authentication Handshake
+### PKCE Authentication Handshake
 - Generates a cryptographically random code verifier and a SHA-256 code challenge entirely client-side (`src/spotify.js`) — no client secret is ever present in the app.
 - Redirect URI is hard-coded to `http://127.0.0.1:5173/callback`, which must match the Spotify Developer Dashboard exactly.
 - Tracks the token's exact expiry millisecond in `localStorage` and proactively flags it as expired on the next load rather than waiting for an API call to fail.
 
-### ✦ Hybrid Playback Control
+### Hybrid Playback Control
 - Uses the **Spotify Web Playback SDK** to register a browser-based playback device ("Verto Audio Engine").
 - All transport controls (play/pause/seek/next/previous) go through **direct REST calls** to `api.spotify.com`, not the SDK's own methods — this sidesteps SDK/iframe messaging quirks.
 - Accepts a pasted Spotify URL or URI (playlist, album, artist, or track) and parses it into the right `context_uri` vs `uris` payload shape automatically.
 - Renders a "Load Default Soothing Mix" shortcut pointed at a fixed Spotify playlist URI.
 
-### ✦ Real-Time Visual Feedback
+### Real-Time Visual Feedback
 Volume and progress sliders are painted with a CSS `linear-gradient` whose stop percentage is recalculated on every tick/drag, giving the "filled track" look without a UI library.
 
 ---
 
-## ✦ Firestore Database Schema 🟩
+## Firestore Database Schema
 
 ### `sessions`
 | Field | Type | Description |
@@ -191,7 +191,7 @@ Written via `setDoc(..., { merge: true })` from `ProfileSettingsModal`, and only
 
 ---
 
-## ✦ Component Tree 🟩
+## Component Tree
 
 ```text
 src/
@@ -222,27 +222,27 @@ src/
 
 ---
 
-## ✦ Component Reference (Deep Dive) 🟩
+## Component Reference (Deep Dive)
 
 **`App.jsx`** — Owns `user`, `currentView`, and every modal's open/closed state. Handles the Spotify OAuth redirect (`?code=` in the URL) alongside Firebase auth on mount. Renders a persistent sidebar (nav: Focus Node / Groups / Audio Engine / Analytics Core) and swaps the main panel by `currentView`. Notably, the Focus tab is kept mounted but `hidden` via CSS rather than unmounted when you switch away — that's specifically what lets `Timer.jsx` detect it's "in the background" and pop out the floating widget instead of resetting.
 
-**`Timer.jsx`** — See [The Neural Timer Engine](#-the-neural-timer-engine-focus-node) above. Two structurally different JSX returns live in one component, selected by the `isBackground` prop passed from `App.jsx`.
+**`Timer.jsx`** — See "The Neural Timer Engine" under [Core Modules & Features](#core-modules--features) above. Two structurally different JSX returns live in one component, selected by the `isBackground` prop passed from `App.jsx`.
 
-**`Feed.jsx`** — See [Activity Log & Global Leaderboard](#-activity-log--global-leaderboard).
+**`Feed.jsx`** — See "Activity Log & Global Leaderboard" under [Core Modules & Features](#core-modules--features).
 
 **`ManageCategoriesModal.jsx`** — Exports `ICON_MAP`, a shared lookup (`Code`, `BookOpen`, `Briefcase`, `Dumbbell`, `Monitor`, `Cpu`, `PenTool`, `Coffee`, `Layout`, `Terminal`, `Activity`) that `Timer.jsx`, `AnalyticsDashboard.jsx`, and others import so a category's icon renders consistently everywhere.
 
-**`GroupDashboard.jsx`** — See [Groups ("Guilds")](#-groups-guilds).
+**`GroupDashboard.jsx`** — See "Groups (Guilds)" under [Core Modules & Features](#core-modules--features).
 
-**`AnalyticsDashboard.jsx`** — See [Analytics Core](#-analytics-core). All three charts are derived from a single `getDocs` pass over the user's `sessions` on mount; there's no live listener here (unlike the Activity Log).
+**`AnalyticsDashboard.jsx`** — See "Analytics Core" under [Core Modules & Features](#core-modules--features). All three charts are derived from a single `getDocs` pass over the user's `sessions` on mount; there's no live listener here (unlike the Activity Log).
 
-**`SpotifyEngine.jsx`** — See [Audio Telemetry Pipeline](#-audio-telemetry-pipeline).
+**`SpotifyEngine.jsx`** — See [Audio Telemetry Pipeline](#audio-telemetry-pipeline).
 
-**`DailySyncModal.jsx`** — See [Daily Sync Modal](#-daily-sync-modal).
+**`DailySyncModal.jsx`** — See "Daily Sync Modal" under [Core Modules & Features](#core-modules--features).
 
-**`ProfileSettingsModal.jsx`** — See [Profile Settings](#-profile-settings).
+**`ProfileSettingsModal.jsx`** — See "Profile Settings" under [Core Modules & Features](#core-modules--features).
 
-**`UserProfileModal.jsx`** — Computes a "Focus Tier" label (`Initiate` / `Novice` / `Adept` / `Elite` / `Master` at 100/500/1,500/4,000 XP thresholds) inline — a *third*, independent tiering scheme from the two described in [The XP & Leveling Layer](#-the-xp--leveling-layer). If opened with a `groupId` in context, it also computes that user's rank within the group. Respects the `isPublic` flag: private profiles show a locked-telemetry state instead of stats.
+**`UserProfileModal.jsx`** — Computes a "Focus Tier" label (`Initiate` / `Novice` / `Adept` / `Elite` / `Master` at 100/500/1,500/4,000 XP thresholds) inline — a *third*, independent tiering scheme from the two described in [The XP & Leveling Layer](#the-xp--leveling-layer). If opened with a `groupId` in context, it also computes that user's rank within the group. Respects the `isPublic` flag: private profiles show a locked-telemetry state instead of stats.
 
 **`PlayerStats.jsx`** — Not currently imported by `App.jsx` or anything else. Fully functional badge/tier widget with a level-up modal animation; would need to be dropped into the sidebar or Focus tab and passed a `uid` to go live.
 
@@ -250,7 +250,7 @@ src/
 
 ---
 
-## ✦ Environment Initialization 🟩
+## Environment Initialization
 
 Create a `.env` file in the project root:
 
@@ -274,11 +274,11 @@ VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id_here
 >
 > **Spotify:** in the Spotify Developer Dashboard, set the app's Redirect URI to exactly `http://127.0.0.1:5173/callback` (note: `127.0.0.1`, not `localhost` — Spotify treats these as different origins for PKCE).
 
-There is no Firestore security-rules file bundled with the repo — rules need to be authored separately in the Firebase console (see [Security Notes](#-security-notes)).
+There is no Firestore security-rules file bundled with the repo — rules need to be authored separately in the Firebase console (see [Security Notes](#security-notes)).
 
 ---
 
-## ✦ Installation & Deployment 🟩
+## Installation & Deployment
 
 ```bash
 # 1. Install dependencies
@@ -299,7 +299,7 @@ npm run preview
 
 ---
 
-## ✦ Known Protocols, Failsafes & Quirks 🟩
+## Known Protocols, Failsafes & Quirks
 
 - **Re-render-safe timer:** the active Focus Node anchors to `Date.now()` and recomputes elapsed seconds from that anchor each tick, so a throttled/backgrounded browser tab can't cause the on-screen time to fall behind real time.
 - **4-hour session cap:** a single Focus Node run auto-pauses at 14,400 seconds with an on-screen warning; the user still has to hit "Log Session" to bank the XP.
@@ -312,7 +312,7 @@ npm run preview
 
 ---
 
-## ✦ Dead Code & Loose Ends 🟩
+## Dead Code & Loose Ends
 
 Worth knowing about if you pick this project back up:
 
@@ -324,7 +324,7 @@ Worth knowing about if you pick this project back up:
 
 ---
 
-## ✦ Security Notes 🟩
+## Security Notes
 
 - No `firestore.rules` file ships with the repo — access control for `sessions`, `categories`, `guilds`, and `users` needs to be defined directly in the Firebase console before this goes anywhere near production, especially since the leaderboard and group features intentionally read other users' documents.
 - The GitHub access token is stored in `localStorage` (`github_token`) for the lifetime of the session, which is standard for client-only OAuth flows but means it's readable by any script running on the page (e.g. via an XSS bug elsewhere in the app or its dependencies).
