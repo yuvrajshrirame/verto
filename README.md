@@ -66,55 +66,51 @@ There's no custom backend server. Everything runs client-side — Firebase handl
 ## System Architecture
 
 ```mermaid
-graph TB
-    subgraph Client["🖥️ Browser (React 19 + Vite 8)"]
-        APP["App.jsx<br/>Master Layout & View Router"]
-        TIMER["Timer.jsx<br/>Focus Stopwatch"]
-        FEED["Feed.jsx<br/>Activity Log & Leaderboard"]
-        GROUPS["GroupDashboard.jsx<br/>Teams & Group Stats"]
-        ANALYTICS["AnalyticsDashboard.jsx<br/>Heatmap, Charts"]
-        SPOTIFY_UI["SpotifyEngine.jsx<br/>Music Player"]
-        SYNC["DailySyncModal.jsx<br/>GitHub Log Commits"]
-        CMD["CommandPalette.jsx<br/>Ctrl+K Launcher"]
-        PROFILE["ProfileSettingsModal.jsx<br/>User Settings"]
+graph LR
+
+    subgraph CLIENT [" React Frontend — Browser "]
+        direction TB
+        APP["App.jsx\nMaster Layout and View Router"]
+
+        APP --- TIMER["Timer.jsx\nFocus Stopwatch + Floating Widget"]
+        APP --- FEED["Feed.jsx\nActivity Log + Leaderboard"]
+        APP --- GROUPS["GroupDashboard.jsx\nTeams, Leaderboards, Diagnostics"]
+        APP --- ANALYTICS["AnalyticsDashboard.jsx\nHeatmap + Bar Chart + Pie Chart"]
+        APP --- SPOTIFY_UI["SpotifyEngine.jsx\nIn-App Music Player"]
+        APP --- SYNC["DailySyncModal.jsx\nGitHub Markdown Commits"]
+        APP --- CMD["CommandPalette.jsx\nCtrl+K Quick Launcher"]
+        APP --- PROFILE["ProfileSettingsModal.jsx\nIdentity, Export, Danger Zone"]
     end
 
-    subgraph Firebase["☁️ Firebase"]
-        AUTH["Firebase Auth<br/>GitHub OAuth Provider"]
-        FIRESTORE["Cloud Firestore<br/>NoSQL Database"]
-        FS_SESSIONS[("sessions")]
-        FS_CATEGORIES[("categories")]
-        FS_GUILDS[("guilds")]
-        FS_USERS[("users")]
+    subgraph FIREBASE [" Firebase "]
+        direction TB
+        AUTH["Firebase Auth\nGitHub OAuth Provider"]
+        DB["Cloud Firestore"]
+
+        DB --- S[("sessions")]
+        DB --- C[("categories")]
+        DB --- G[("guilds")]
+        DB --- U[("users")]
     end
 
-    subgraph External["🌐 External APIs"]
-        GITHUB_API["GitHub REST API<br/>Contents API for Daily Sync"]
-        SPOTIFY_API["Spotify Web API<br/>Playback Controls"]
-        SPOTIFY_SDK["Spotify Web Playback SDK<br/>Browser Audio Device"]
+    subgraph EXTERNAL [" External APIs "]
+        direction TB
+        GH["GitHub REST API\nContents API for Daily Sync"]
+        SP_API["Spotify Web API\nPlayback Control via REST"]
+        SP_SDK["Spotify Web Playback SDK\nBrowser Audio Device"]
     end
 
-    APP --> TIMER & FEED & GROUPS & ANALYTICS & SPOTIFY_UI & SYNC & CMD & PROFILE
-
-    TIMER -->|"save sessions"| FS_SESSIONS
-    FEED -->|"read/edit sessions"| FS_SESSIONS
-    FEED -->|"leaderboard: scan all sessions"| FS_SESSIONS
-    GROUPS -->|"create/join/manage"| FS_GUILDS
-    GROUPS -->|"member stats"| FS_SESSIONS
-    ANALYTICS -->|"fetch all user sessions"| FS_SESSIONS
-    TIMER -->|"manage categories"| FS_CATEGORIES
-    PROFILE -->|"read/write profile"| FS_USERS
-
-    APP -->|"GitHub sign-in"| AUTH
-    SYNC -->|"commit markdown logs"| GITHUB_API
-    SPOTIFY_UI -->|"play/pause/seek/skip"| SPOTIFY_API
-    SPOTIFY_UI -->|"register browser device"| SPOTIFY_SDK
-
-    FIRESTORE --- FS_SESSIONS & FS_CATEGORIES & FS_GUILDS & FS_USERS
-
-    style Client fill:#0a0f1a,stroke:#10b981,color:#e2e8f0
-    style Firebase fill:#0f172a,stroke:#10b981,color:#e2e8f0
-    style External fill:#0f172a,stroke:#10b981,color:#e2e8f0
+    APP -- "GitHub Sign-In" --> AUTH
+    TIMER -- "Save Focus Sessions" --> S
+    TIMER -- "Read / Create Categories" --> C
+    FEED -- "Read + Edit Sessions" --> S
+    GROUPS -- "Create / Join / Manage" --> G
+    GROUPS -- "Query Member Sessions" --> S
+    ANALYTICS -- "Fetch All User Sessions" --> S
+    PROFILE -- "Read / Write Profile Doc" --> U
+    SYNC -- "Commit Markdown Logs" --> GH
+    SPOTIFY_UI -- "Play, Pause, Seek, Skip" --> SP_API
+    SPOTIFY_UI -- "Register Browser Device" --> SP_SDK
 ```
 
 **Key technology choices:**
@@ -137,37 +133,34 @@ graph TB
 ## User Flow
 
 ```mermaid
-flowchart TD
-    START(["User visits VERTO."]) --> LANDING["Landing Page"]
-    LANDING -->|"Click INITIALIZE"| LOGIN_MODAL["Login Modal"]
-    LOGIN_MODAL -->|"Connect via GitHub"| AUTH["Firebase GitHub Auth"]
-    AUTH -->|"Success"| MAIN["Main App"]
-    AUTH -->|"Fail"| LOGIN_MODAL
+flowchart TB
 
-    MAIN --> SIDEBAR{"Sidebar Navigation"}
+    START(["User visits VERTO."]) --> LANDING["Landing Page — Hero, Feature Grid, Stats"]
+    LANDING -- "Click INITIALIZE" --> LOGIN["Login Modal — Connect via GitHub"]
+    LOGIN -- "GitHub OAuth Popup" --> FIREBASE_AUTH["Firebase GitHub Auth — Requests repo Scope"]
+    FIREBASE_AUTH -- "Auth Success — Token saved to localStorage" --> NAV
+    FIREBASE_AUTH -. "Auth Failed — Retry" .-> LOGIN
 
-    SIDEBAR -->|"Focus Node"| FOCUS["Focus Timer"]
-    SIDEBAR -->|"Activity"| ACTIVITY["Activity Log / Leaderboard"]
-    SIDEBAR -->|"Groups"| GROUP["Group Dashboard"]
-    SIDEBAR -->|"Analytics"| ANALYTIC["Analytics Dashboard"]
-    SIDEBAR -->|"Audio Engine"| AUDIO["Spotify Player"]
+    NAV{"Sidebar Navigation — Pick a View"}
 
-    FOCUS -->|"Select category"| CAT["Choose/Create Category"]
-    CAT --> START_TIMER["Start Timer"]
-    START_TIMER -->|"Focus..."| PAUSE["Pause Timer"]
-    PAUSE -->|"Log Session"| SAVE["Save to Firestore<br/>Earn XP"]
-    SAVE --> FOCUS
+    NAV -- "Focus Node" --> FOCUS["Focus Timer — Category-Tagged Stopwatch"]
+    NAV -- "Activity" ----> ACTIVITY["Activity Feed — Session Log and Global Leaderboard"]
+    NAV -- "Groups" ----> GROUPVIEW["Groups — Teams, Rankings, Member Diagnostics"]
+    NAV -- "Analytics" --> ANALYTICVIEW["Analytics — 12-Week Heatmap, Bar Chart, Pie Chart"]
+    NAV -- "Audio Engine" ----> AUDIO["Audio Engine — Spotify In-App Player"]
 
-    START_TIMER -->|"Switch to another tab"| WIDGET["Floating Timer Widget<br/>(stays visible)"]
-    WIDGET -->|"Click OPEN"| FOCUS
+    FOCUS -- "1. Select Category" --> PICK["Pick a Category — Name, Color, and Icon"]
+    PICK -- "2. Start" --> RUN["Timer Running — Anchored to Date.now for Accuracy"]
+    RUN -- "3. Pause" --> PAUSE["Timer Paused — Elapsed Time Preserved"]
+    PAUSE -- "4. Log Session" --> LOG["Session Saved — Stored in Firestore, XP Earned"]
+    LOG -. "Start Another Session" .-> FOCUS
 
-    SIDEBAR -->|"Daily Sync"| DAILY["Commit today's sessions<br/>to GitHub"]
-    SIDEBAR -->|"Profile"| PROF["Profile Settings<br/>Identity / Export / Delete"]
-    MAIN -->|"Ctrl+K"| CMD_PAL["Command Palette<br/>Navigate or search users"]
+    RUN -- "Switch to Another Tab" --> WIDGET["Floating Timer Widget — Draggable, Rendered via createPortal"]
+    WIDGET -- "Click OPEN" --> FOCUS
 
-    style START fill:#10b981,stroke:#10b981,color:#030712
-    style SAVE fill:#10b981,stroke:#10b981,color:#030712
-    style WIDGET fill:#f59e0b,stroke:#f59e0b,color:#030712
+    NAV -. "Ctrl+K Shortcut" .-> CMD["Command Palette — Search Commands or @Users"]
+    NAV -. "Sidebar Button" .-> SYNC["Daily Sync — Commit Markdown Log to GitHub"]
+    NAV -. "Sidebar Button" .-> PROF["Profile Settings — Identity, Data Export, Account Deletion"]
 ```
 
 ---
@@ -351,44 +344,49 @@ All data lives in Cloud Firestore (NoSQL). Here are the four collections:
 
 ```mermaid
 erDiagram
+    USERS ||--o{ SESSIONS : "logs focus sessions"
+    USERS ||--o{ CATEGORIES : "creates focus categories"
+    USERS }o--o{ GUILDS : "joins as member"
+    SESSIONS }o--|| CATEGORIES : "tagged with"
+
     USERS {
+        string uid PK "Firebase Auth UID"
         string displayName "Editable display name"
         string photoURL "Editable avatar URL"
-        string username "Handle for @search"
-        boolean isPublic "Leaderboard & profile visibility"
+        string username "Unique handle for @search"
+        boolean isPublic "Controls leaderboard and profile visibility"
     }
 
     SESSIONS {
-        string uid "Owner's Firebase UID"
-        string userName "Cached display name"
-        string userPhoto "Cached avatar URL"
+        string id PK "Auto-generated document ID"
+        string uid FK "Owner — references USERS"
+        string userName "Cached display name at write time"
+        string userPhoto "Cached avatar URL at write time"
         string task "Category name"
-        string taskColor "Cached category color"
-        string taskIcon "Cached category icon"
-        number duration "Focus time in seconds"
-        number xp "floor(duration / 60) * 10"
-        boolean synced "Pushed via Daily Sync?"
-        timestamp timestamp "Server-side write time"
+        string taskColor "Cached hex color from category"
+        string taskIcon "Cached icon key from category"
+        number duration "Focus time in raw seconds"
+        number xp "Calculated as floor of duration div 60 times 10"
+        boolean synced "Whether pushed via Daily Sync to GitHub"
+        timestamp timestamp "Server-side Firestore write time"
     }
 
     CATEGORIES {
-        string uid "Owner's Firebase UID"
-        string name "Category label (max 20 chars)"
-        string color "Hex color swatch"
-        string icon "Key into ICON_MAP"
-        timestamp createdAt "Server-side write time"
+        string id PK "Auto-generated document ID"
+        string uid FK "Owner — references USERS"
+        string name "Category label — max 20 characters"
+        string color "One of 7 preset hex color swatches"
+        string icon "Key into shared ICON_MAP — 11 Lucide icons"
+        timestamp createdAt "Server-side Firestore write time"
     }
 
     GUILDS {
+        string inviteCode PK "6-char random code — IS the document ID"
         string name "Group display name"
-        string admin "Creator's UID"
-        array_string members "Member UIDs (max 10)"
-        date createdAt "Client-side timestamp"
+        string admin FK "Creator UID — references USERS"
+        array members "Array of member UIDs — max 10 entries"
+        date createdAt "Client-side timestamp — not serverTimestamp"
     }
-
-    USERS ||--o{ SESSIONS : "logs"
-    USERS ||--o{ CATEGORIES : "creates"
-    USERS }o--o{ GUILDS : "joins"
 ```
 
 ### Collection Details
