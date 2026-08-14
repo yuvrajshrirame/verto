@@ -20,6 +20,8 @@
 
 <br />
 
+> **🚀 Official Documentation:** [docs.uraj.dev/verto](https://docs.uraj.dev/verto) — Read deep dives into the audio engine, gamification mechanics, group telemetry, and firestore schemas that power VERTO.
+
 ---
 
 ## ✦ Table of Contents 🟩

@@ -12,7 +12,7 @@ import GroupDashboard from "./components/GroupDashboard";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CommandPalette from "./components/CommandPalette"; 
 import UserProfileModal from "./components/UserProfileModal"; 
-import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2, Bug } from "lucide-react"; 
+import { DatabaseBackup, LogOut, X, Zap, Disc, Users, BarChart2, Bug, Book } from "lucide-react"; 
 
 import { redirectToSpotifyAuth, getTokenFromCode } from "./spotify";
 
@@ -138,6 +138,17 @@ function App() {
                   <span className="hidden md:block font-mono text-xs font-bold tracking-widest whitespace-nowrap truncate">{item.label}</span>
                 </button>
               ))}
+
+              <a 
+                href="https://docs.uraj.dev/verto" 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-center md:justify-start gap-4 p-3 rounded-xl transition-all duration-300 cursor-pointer w-full text-left overflow-hidden border border-transparent text-emerald-700 hover:text-emerald-400 hover:bg-emerald-950/30"
+                title="DOCUMENTATION"
+              >
+                <Book className="w-5 h-5 shrink-0" />
+                <span className="hidden md:block font-mono text-xs font-bold tracking-widest whitespace-nowrap truncate">DOCUMENTATION</span>
+              </a>
             </nav>
           </div>
 

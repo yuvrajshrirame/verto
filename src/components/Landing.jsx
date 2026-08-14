@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Book } from 'lucide-react';
 
 const Landing = ({ onLogin }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,9 +28,20 @@ const Landing = ({ onLogin }) => {
 
       {/* Hero Section - Reduced margins to fit single viewport */}
       <section className="flex-1 max-w-6xl w-full mx-auto px-6 flex flex-col items-center justify-center text-center relative z-10">
-        <div className="inline-flex items-center space-x-2 bg-[#090a0f]/60 backdrop-blur-sm border border-emerald-900/50 border-t-emerald-500/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-full px-4 py-1.5 mb-6">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
-          <span className="text-[10px] font-mono text-emerald-400 font-bold tracking-widest uppercase mt-0.5">VERTO ONLINE // V1.0</span>
+        <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
+          <div className="inline-flex items-center space-x-2 bg-[#090a0f]/60 backdrop-blur-sm border border-emerald-900/50 border-t-emerald-500/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-full px-4 py-1.5">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
+            <span className="text-[10px] font-mono text-emerald-400 font-bold tracking-widest uppercase mt-0.5">VERTO ONLINE // V1.0</span>
+          </div>
+          <a 
+            href="https://docs.uraj.dev/verto" 
+            target="_blank" 
+            rel="noreferrer"
+            className="inline-flex items-center space-x-2 bg-[#090a0f]/40 hover:bg-emerald-900/20 backdrop-blur-sm border border-slate-800 hover:border-emerald-500/40 rounded-full px-4 py-1.5 transition-all duration-300 group cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+          >
+            <Book className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
+            <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-400 font-bold tracking-widest uppercase mt-0.5 transition-colors">Explore Docs</span>
+          </a>
         </div>
         
         <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 tracking-tight mb-5 drop-shadow-lg">
@@ -73,7 +85,7 @@ const Landing = ({ onLogin }) => {
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-xs text-slate-600 font-mono uppercase tracking-widest">
           <p>© 2026 Verto. All rights reserved.</p>
           <div className="flex items-center space-x-6 mt-3 md:mt-0">
-            <a href="https://github.com/yuvrajshrirame/verto" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors duration-300">Documentation</a>
+            <a href="https://docs.uraj.dev/verto" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors duration-300">Documentation</a>
             <a href="https://github.com/yuvrajshrirame/verto" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors duration-300">GitHub</a>
           </div>
         </div>
